@@ -36,9 +36,6 @@ html,body{height:100%;background:var(--bg);color:var(--txt);
 .lb{border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;border:1px solid;display:inline-block}
 .sp{width:13px;height:13px;border:2px solid var(--vio);border-top-color:transparent;border-radius:50%;
   animation:spin .8s linear infinite;display:inline-block;vertical-align:middle;margin-right:5px}
-.bgmbtn{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.35);border-radius:8px;
-  color:#93c5fd;padding:6px 11px;cursor:pointer;font-size:11px;font-family:inherit;transition:all .2s}
-.bgmbtn.off{opacity:.4;color:var(--txt3);border-color:var(--bdr)}
 #toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,0);background:var(--sur2);
   border:1px solid var(--bdr2);border-radius:20px;padding:8px 18px;font-size:12px;color:var(--txt);
   z-index:500;display:none;white-space:nowrap;max-width:85vw;text-align:center}
@@ -250,7 +247,6 @@ html,body{height:100%;background:var(--bg);color:var(--txt);
     <div style="flex:1">
       <div class="title-grad">漢字クロスパズル</div>
     </div>
-    <button class="bgmbtn" id="bgmbtn-ls" onclick="toggleBGM()">🔊 BGM</button>
   </div>
   <div class="ls-subtitle">JLPT N5 → N1 レベルを選んで冒険しよう</div>
 
@@ -286,7 +282,6 @@ html,body{height:100%;background:var(--bg);color:var(--txt);
   <div class="ss-header">
     <button class="back-btn" onclick="showLevelSelect()">← レベル選択</button>
     <div style="flex:1;text-align:center" id="ss-level-badge"></div>
-    <button class="bgmbtn" id="bgmbtn-ss" onclick="toggleBGM()">🔊 BGM</button>
   </div>
   <div class="ss-title" id="ss-title"></div>
 
@@ -479,127 +474,40 @@ function findCells(word){
 }
 
 // ════════════════════════════════════════════
-// AUDIO — 完全クリーン実装
+// AUDIO — 効果音のみ（BGMなし）
 // ════════════════════════════════════════════
-let AC=null,bgmOn=localStorage.getItem('kp_bgm')!=='off';
-let bgmRunning=false,bgmSched=null;
-let bgmMI=0,bgmBI=0,bgmMT=0,bgmBT=0;
-
-// 陽気なJRPG風メロディ C major 108BPM
-const BPM=108,Q=60/BPM;
-const MEL=[
-  [523.25,1],[659.25,1],[783.99,2],
-  [659.25,1],[587.33,1],[523.25,2],
-  [392,1],[440,1],[523.25,1],[440,1],
-  [392,4],
-  [659.25,1],[783.99,1],[880,1],[783.99,1],
-  [659.25,1],[587.33,1],[523.25,2],
-  [440,1],[523.25,1],[587.33,1],[523.25,1],
-  [523.25,4],
-];
-const BASS=[
-  [130.81,2],[196,2],[130.81,2],[110,2],
-  [130.81,2],[196,2],[164.81,2],[196,2],
-];
-// パーカッション: hi-hat タイミング(拍単位)
-const HHAT_BEAT=0.5;
-let bgmHT=0,bgmHTI=0;
-
+let AC=null;
 function initAC(){
   if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==='suspended')AC.resume();
   return AC;
 }
-function note(freq,t,dur,vol,wave='triangle'){
+function _note(freq,t,dur,vol,wave='sine'){
   try{
     const o=AC.createOscillator(),g=AC.createGain();
     o.connect(g);g.connect(AC.destination);
     o.type=wave;o.frequency.value=freq;
     g.gain.setValueAtTime(0,t);
-    g.gain.linearRampToValueAtTime(vol,t+0.025);
-    g.gain.setValueAtTime(vol*0.6,t+dur-0.06);
+    g.gain.linearRampToValueAtTime(vol,t+0.02);
     g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-    o.start(t);o.stop(t+dur+0.06);
+    o.start(t);o.stop(t+dur+0.05);
   }catch(e){}
 }
-function hihat(t,vol=0.022){
-  try{
-    const buf=AC.createBuffer(1,Math.round(AC.sampleRate*0.04),AC.sampleRate);
-    const d=buf.getChannelData(0);
-    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,4);
-    const s=AC.createBufferSource(),g=AC.createGain();
-    s.buffer=buf;s.connect(g);g.connect(AC.destination);
-    g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.04);
-    s.start(t);s.stop(t+0.05);
-  }catch(e){}
-}
-function bgmSchedule(){
-  if(!bgmRunning)return;
-  const LA=0.22,now=AC.currentTime;
-  while(bgmMT<now+LA){
-    const[f,d]=MEL[bgmMI%MEL.length];
-    if(f>0)note(f,bgmMT,d*Q*0.78,0.09);
-    bgmMT+=d*Q;bgmMI++;
-  }
-  while(bgmBT<now+LA){
-    const[f,d]=BASS[bgmBI%BASS.length];
-    if(f>0)note(f,bgmBT,d*Q*0.55,0.048,'sine');
-    bgmBT+=d*Q;bgmBI++;
-  }
-  while(bgmHT<now+LA){
-    hihat(bgmHT,0.018);
-    bgmHT+=HHAT_BEAT*Q;bgmHTI++;
-  }
-  bgmSched=setTimeout(bgmSchedule,22);
-}
-function startBGM(){
-  if(bgmRunning)return;
-  try{
-    initAC();
-    const go=()=>{
-      bgmRunning=true;
-      bgmMT=AC.currentTime+0.1;bgmBT=AC.currentTime+0.1;bgmHT=AC.currentTime+0.1;
-      bgmMI=0;bgmBI=0;bgmHTI=0;
-      bgmSchedule();
-    };
-    AC.state==='suspended'?AC.resume().then(go):go();
-  }catch(e){}
-}
-function stopBGM(){
-  bgmRunning=false;
-  if(bgmSched){clearTimeout(bgmSched);bgmSched=null;}
-}
-function toggleBGM(){
-  bgmOn=!bgmOn;
-  localStorage.setItem('kp_bgm',bgmOn?'on':'off');
-  bgmOn?startBGM():stopBGM();
-  updateBGMBtns();
-}
-function updateBGMBtns(){
-  document.querySelectorAll('.bgmbtn').forEach(b=>{
-    b.textContent=bgmOn?'🔊 BGM':'🔇 BGM';
-    b.classList.toggle('off',!bgmOn);
-  });
-}
-// SFX
 function sfx(type){
   try{
     initAC();const now=AC.currentTime;
     if(type==='ok'){
-      [[523.25,0],[659.25,.1],[783.99,.2]].forEach(([f,d])=>{
-        note(f,now+d,.5,.18,'sine');
-      });
+      [[523.25,0],[659.25,.1],[783.99,.2]].forEach(([f,d])=>_note(f,now+d,.45,.18));
     }else if(type==='ng'){
-      note(200,now,.08,.12,'sawtooth');
-      note(140,now+.06,.14,.12,'sawtooth');
+      _note(220,now,.08,.14,'sawtooth');
+      _note(140,now+.07,.16,.14,'sawtooth');
     }else if(type==='clear'){
-      [523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=>note(f,now+i*.09,.65,.16,'sine'));
+      [523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=>_note(f,now+i*.09,.6,.16));
     }
   }catch(e){}
 }
-let bgmTouched=false;
-document.addEventListener('pointerdown',()=>{
-  if(!bgmTouched&&bgmOn){bgmTouched=true;try{initAC();AC.state==='suspended'?AC.resume().then(startBGM):startBGM();}catch(e){}}
-},{passive:true});
+// 最初のタップでAudioContext初期化
+document.addEventListener('pointerdown',()=>{try{initAC();}catch(e){}},{once:true,passive:true});
 
 // ════════════════════════════════════════════
 // SCREEN NAVIGATION
@@ -614,7 +522,6 @@ function showScreen(id){
 function initLevelScreen(){
   showScreen('level-screen');
   renderLevelMap();
-  updateBGMBtns();
   // progress
   const done=prog.c.length;
   document.getElementById('stat-fill-ls').style.width=`${(done/25)*100}%`;
@@ -724,7 +631,6 @@ function initStageScreen(){
   document.getElementById('ss-level-badge').innerHTML=`<span class="lb" style="background:${lc}20;border-color:${lc}60;color:${lc}">${lv}</span>`;
   document.getElementById('ss-title').textContent=`${info.emoji} ${lv} ${info.name}`;
   renderStageMap();
-  updateBGMBtns();
 }
 
 function renderStageMap(){
@@ -905,7 +811,13 @@ async function beginStage(sid){
   document.getElementById('pf').textContent='0';document.getElementById('pt').textContent='?';document.getElementById('pc').textContent='';
   document.getElementById('pfill').style.width='0%';document.getElementById('pfill').style.background=`linear-gradient(90deg,${lc},var(--grn))`;
   document.getElementById('fwrap').style.display='none';document.getElementById('fwchips').innerHTML='';document.getElementById('fbkarea').innerHTML='';
-  document.getElementById('hleft').textContent=`(${hLeft}回)`;document.getElementById('hbtn').disabled=false;document.getElementById('gubtn').disabled=false;document.getElementById('finbtn').disabled=true;document.getElementById('finbtn').className='ab finb';document.getElementById('clear-banner').style.display='none';
+  document.getElementById('hleft').textContent=`(${hLeft}回)`;
+  document.getElementById('hbtn').disabled=false;
+  const _gu=document.getElementById('gubtn');
+  _gu.disabled=false;_gu.style.display='';_gu.textContent='🏳 ギブアップ（残りの言葉を見る）';_gu.onclick=doGiveUp;
+  const _fin=document.getElementById('finbtn');
+  _fin.disabled=true;_fin.className='ab finb';_fin.textContent='🎌 終了';_fin.onclick=doFinish;
+  document.getElementById('clear-banner').style.display='none';
   setWD('hint','漢字を直線でなぞって単語を作ろう');
   document.getElementById('grid-area').innerHTML=`<div class="gload"><div class="bspin" style="border-color:${lc}"></div><div style="color:var(--txt3);font-size:12px">グリッドを生成中...</div></div>`;
   setTimeout(()=>{
@@ -1191,8 +1103,6 @@ document.addEventListener('keydown',e=>{
 lvlCharPos=LEVELS.findLastIndex((_,i)=>lvlUnlocked(i));
 if(lvlCharPos<0)lvlCharPos=0;
 initLevelScreen();
-updateBGMBtn();
-function updateBGMBtn(){updateBGMBtns();}
 </script>
 </body>
 </html>
