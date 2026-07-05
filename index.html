@@ -1,239 +1,335 @@
 <!DOCTYPE html>
 <html lang="ja">
-<!--
-  漢字クロスパズル PUBLIC v3
-  ✅ APIキー不要・完全無料
-  ✅ 内蔵辞書600語 → 本心・上手・左右 etc. 即判定
-  ✅ 未収録語はJisho.orgで補完
-  ✅ Netlify Dropで30秒公開: https://app.netlify.com/drop
--->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
 <title>漢字クロスパズル</title>
 <style>
-:root{--bg:#04060f;--bg2:#080d1e;--sur:#111827;--sur2:#1a2035;--bdr:#1e2d4a;--bdr2:#263352;--vio:#7c3aed;--viol:#a78bfa;--blu:#3b82f6;--grn:#10b981;--grnl:#6ee7b7;--gld:#d4a017;--gldl:#fcd34d;--red:#ef4444;--redl:#fca5a5;--amb:#f59e0b;--ambl:#fcd34d;--txt:#e2e8f0;--txt2:#94a3b8;--txt3:#475569}
+:root{
+  --bg:#04060f;--bg2:#080d1e;--sur:#111827;--sur2:#1a2035;
+  --bdr:#1e2d4a;--bdr2:#263352;
+  --vio:#7c3aed;--viol:#a78bfa;--blu:#3b82f6;
+  --grn:#10b981;--grnl:#6ee7b7;--gld:#d4a017;--gldl:#fcd34d;
+  --red:#ef4444;--redl:#fca5a5;--amb:#f59e0b;--ambl:#fcd34d;
+  --txt:#e2e8f0;--txt2:#94a3b8;--txt3:#475569;
+  --N5:#10b981;--N4:#3b82f6;--N3:#f59e0b;--N2:#ef4444;--N1:#8b5cf6;
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);color:var(--txt);font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;user-select:none;overflow-x:hidden}
+html,body{height:100%;background:var(--bg);color:var(--txt);
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;
+  user-select:none;overflow-x:hidden}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
-@keyframes hintPulse{0%,100%{box-shadow:0 0 8px var(--gld)}50%{box-shadow:0 0 22px var(--gld),0 0 40px var(--gld)}}
-@keyframes toastIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
-#map-screen{padding:18px 14px 30px;max-width:520px;margin:0 auto;width:100%;display:block}
-#game-screen{padding:10px 12px 80px;max-width:440px;margin:0 auto;width:100%;display:none}
-.title-grad{background:linear-gradient(90deg,#a78bfa,#60a5fa,#34d399,#a78bfa);background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 4s linear infinite;font-size:clamp(20px,6vw,28px);font-weight:900;letter-spacing:1px}
-.map-box{background:var(--bg2);border-radius:16px;padding:14px 10px;border:1px solid var(--bdr)}
-.map-row{display:flex;align-items:center;margin-bottom:4px}
-.h-line{flex:1;height:2px;background:var(--bdr2)}
-.v-wrap{height:8px;display:flex;align-items:center}.v-line{width:2px;height:8px;background:var(--bdr2)}
-.snode{width:50px;height:50px;border-radius:50%;border:2px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;padding:0;background:transparent;flex-shrink:0;font-family:inherit}
-.snode:disabled{cursor:not-allowed}.snode.cur{animation:pulse 2s infinite}.snode:not(:disabled):hover{transform:scale(1.12)}
-.snode .se{font-size:15px}.snode .si{font-size:8px;font-weight:700;opacity:.7}
-.stats-box{background:var(--bg2);border-radius:12px;padding:12px 16px;border:1px solid var(--bdr);margin-top:14px}
-.prog-track{background:var(--sur2);border-radius:3px;height:5px;overflow:hidden;margin-top:6px}
-.prog-fill{height:100%;border-radius:3px;transition:width .6s}
+@keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes charWalk{0%,100%{transform:scaleX(1) translateY(0)}25%{transform:scaleX(1) translateY(-3px)}75%{transform:scaleX(1) translateY(-3px)}}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* ── SHARED ── */
+.screen{display:none;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;padding:16px 14px}
+.screen.active{display:flex}
+.title-grad{background:linear-gradient(90deg,#a78bfa,#60a5fa,#34d399,#a78bfa);background-size:300% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 4s linear infinite;
+  font-size:clamp(22px,6vw,30px);font-weight:900;letter-spacing:1px;text-align:center}
+.lb{border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;border:1px solid;display:inline-block}
+.sp{width:13px;height:13px;border:2px solid var(--vio);border-top-color:transparent;border-radius:50%;
+  animation:spin .8s linear infinite;display:inline-block;vertical-align:middle;margin-right:5px}
+.bgmbtn{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.35);border-radius:8px;
+  color:#93c5fd;padding:6px 11px;cursor:pointer;font-size:11px;font-family:inherit;transition:all .2s}
+.bgmbtn.off{opacity:.4;color:var(--txt3);border-color:var(--bdr)}
+#toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,0);background:var(--sur2);
+  border:1px solid var(--bdr2);border-radius:20px;padding:8px 18px;font-size:12px;color:var(--txt);
+  z-index:500;display:none;white-space:nowrap;max-width:85vw;text-align:center}
+
+/* ── LEVEL SELECT ── */
+#level-screen{}
+.ls-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.ls-subtitle{color:var(--txt3);font-size:11px;text-align:center;margin-bottom:20px}
+
+/* Walk area */
+.walk-area{position:relative;padding:30px 10px 16px;margin-bottom:4px}
+.walk-path{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.walk-path::before{content:'';position:absolute;top:50%;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--bdr2),var(--bdr2));transform:translateY(-50%);z-index:0;border-radius:2px}
+.wnode{width:56px;height:56px;border-radius:50%;border:2px solid;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;z-index:2;
+  background:var(--bg2);flex-shrink:0;font-family:inherit}
+.wnode:not(.locked):hover{transform:scale(1.1)}
+.wnode.locked{cursor:not-allowed;opacity:.4}
+.wnode.current{animation:pulse 2s infinite}
+.wnode .wn-label{font-size:11px;font-weight:700}
+.wnode .wn-prog{font-size:8px;opacity:.7;margin-top:1px}
+.walk-char{position:absolute;font-size:22px;top:0;transition:left .2s ease-out;
+  filter:drop-shadow(0 2px 5px rgba(0,0,0,.6));pointer-events:none;z-index:10}
+.walk-char.idle{animation:charBob 1.5s ease-in-out infinite}
+.walk-char.walking{animation:charWalk .2s ease-in-out infinite}
+
+/* Level info card */
+.info-card{background:var(--bg2);border-radius:14px;border:1px solid var(--bdr);padding:16px;margin-bottom:12px;animation:slideUp .2s ease}
+.ic-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ic-emoji{font-size:28px}
+.ic-title{font-size:17px;font-weight:700}
+.ic-sub{font-size:11px;color:var(--txt3);margin-top:2px}
+.ic-progress{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.ic-stage-dot{width:28px;height:28px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.ic-play-btn{width:100%;border:none;border-radius:10px;padding:11px;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;background:linear-gradient(135deg,var(--vio),var(--blu));color:#fff;transition:opacity .2s}
+.ic-play-btn:hover{opacity:.9}
+.ic-locked{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--txt3);font-size:13px;padding:10px}
+
+/* Stats row */
+.stats-row{display:flex;justify-content:space-between;align-items:center;background:var(--bg2);
+  border-radius:10px;border:1px solid var(--bdr);padding:10px 14px;margin-bottom:8px}
+.stat-label{color:var(--txt2);font-size:12px}
+.stat-val{font-weight:700;font-size:13px}
+.stat-bar-wrap{margin-top:6px}
+.stat-bar{background:var(--sur2);border-radius:3px;height:4px;overflow:hidden}
+.stat-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--vio),var(--grn));transition:width .6s}
+
+/* ── STAGE SELECT ── */
+#stage-screen{}
+.ss-header{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.back-btn{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);
+  padding:7px 12px;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap}
+.ss-title{font-size:16px;font-weight:700;text-align:center;margin-bottom:20px}
+
+.stage-walk-area{position:relative;padding:30px 6px 16px}
+.stage-path{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.stage-path::before{content:'';position:absolute;top:50%;left:0;right:0;height:3px;
+  background:var(--bdr2);transform:translateY(-50%);z-index:0;border-radius:2px}
+.snode{width:52px;height:52px;border-radius:50%;border:2px solid;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;z-index:2;
+  background:var(--bg2);flex-shrink:0;font-family:inherit}
+.snode:not(.locked):hover{transform:scale(1.1)}
+.snode.locked{cursor:not-allowed;opacity:.4}
+.snode.current{animation:pulse 2s infinite}
+.snode .sn-emoji{font-size:14px}
+.snode .sn-num{font-size:8px;opacity:.7;margin-top:1px;font-weight:700}
+
+.stage-info-card{background:var(--bg2);border-radius:14px;border:1px solid var(--bdr);padding:16px;
+  margin-bottom:12px;animation:slideUp .2s ease}
+.sic-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.sic-emoji{font-size:24px}
+.sic-title{font-size:16px;font-weight:700}
+.sic-goal{font-size:12px;color:var(--txt2);margin-top:2px}
+.sic-status{margin-bottom:10px}
+.sic-play{width:100%;border:none;border-radius:10px;padding:10px;cursor:pointer;font-size:14px;
+  font-weight:700;font-family:inherit;background:linear-gradient(135deg,var(--vio),var(--blu));color:#fff}
+
+/* nav row */
+.nav-row{display:flex;gap:8px;justify-content:center;margin-bottom:8px}
+.nav-btn{background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);
+  padding:7px 16px;cursor:pointer;font-size:12px;font-family:inherit}
+.nav-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* ── GAME SCREEN ── */
+#game-screen{}
 .ghdr{display:flex;align-items:center;gap:7px;margin-bottom:8px}
-.bsm{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);padding:7px 10px;cursor:pointer;font-size:12px;white-space:nowrap;font-family:inherit;transition:background .2s}.bsm:hover{background:var(--sur2)}
-.bsm.vb{color:var(--ambl);border-color:rgba(245,158,11,.4)}
-.prog-wrap{background:var(--bg2);border-radius:8px;padding:7px 12px;border:1px solid var(--bdr);display:flex;align-items:center;gap:10px;margin-bottom:7px}
-.frac{font-weight:700;font-size:14px;white-space:nowrap}.fn{color:var(--grnl)}.sep{color:var(--txt3);margin:0 1px}.tn{color:var(--txt2)}
-.wdisp{height:38px;background:var(--bg2);border-radius:8px;border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;margin-bottom:7px;font-size:20px;font-weight:700;letter-spacing:4px;transition:all .15s}
-.wdisp.act{border-color:rgba(124,58,237,.6)}.wdisp .ht{font-size:11px;color:var(--txt3);letter-spacing:0;font-weight:400}
-#kg{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;background:var(--bg2);border-radius:14px;padding:10px;border:1px solid var(--bdr);margin-bottom:7px;touch-action:none;cursor:crosshair}
-.kc{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:clamp(15px,4.5vw,25px);font-weight:700;border-radius:8px;border:2px solid var(--bdr);background:var(--sur);color:var(--txt);transition:all .1s;cursor:crosshair}
-.kc.sel{background:rgba(124,58,237,.3)!important;border-color:var(--vio)!important;color:var(--viol)!important;transform:scale(1.07)!important;box-shadow:0 0 12px rgba(124,58,237,.45)!important}
+.bsm{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);
+  padding:7px 10px;cursor:pointer;font-size:12px;white-space:nowrap;font-family:inherit}
+.bsm:hover{background:var(--sur2)}
+.prog-wrap{background:var(--bg2);border-radius:8px;padding:7px 12px;border:1px solid var(--bdr);
+  display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.prog-track{flex:1;background:var(--sur2);border-radius:3px;height:5px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .5s}
+.wdisp{height:38px;background:var(--bg2);border-radius:8px;border:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:center;margin-bottom:7px;
+  font-size:20px;font-weight:700;letter-spacing:4px;transition:border-color .15s}
+.wdisp.act{border-color:rgba(124,58,237,.6)}
+.wdisp .ht{font-size:11px;color:var(--txt3);letter-spacing:0;font-weight:400}
+#kg{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;background:var(--bg2);border-radius:14px;
+  padding:10px;border:1px solid var(--bdr);margin-bottom:7px;touch-action:none;cursor:crosshair}
+.kc{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:clamp(15px,4.5vw,25px);
+  font-weight:700;border-radius:8px;border:2px solid var(--bdr);background:var(--sur);color:var(--txt);
+  transition:all .1s;cursor:crosshair}
+.kc.sel{background:rgba(124,58,237,.3)!important;border-color:var(--vio)!important;color:var(--viol)!important;
+  transform:scale(1.07)!important;box-shadow:0 0 12px rgba(124,58,237,.45)!important}
 .kc.fc{background:rgba(16,185,129,.1)!important;border-color:rgba(16,185,129,.35)!important;color:var(--grnl)!important}
-.kc.hc{background:rgba(212,160,23,.2)!important;border-color:var(--gld)!important;color:var(--gldl)!important;animation:hintPulse .8s infinite!important}
+.kc.hc{background:rgba(212,160,23,.2)!important;border-color:var(--gld)!important;color:var(--gldl)!important;
+  animation:pulse .8s infinite!important}
 .kc.gc{background:rgba(239,68,68,.1)!important;border-color:rgba(239,68,68,.3)!important;color:var(--redl)!important}
 .arow{display:flex;gap:6px;margin-bottom:7px}
-.ab{flex:1;border:1px solid;border-radius:8px;padding:8px 6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px}
+.ab{flex:1;border:1px solid;border-radius:8px;padding:8px 6px;cursor:pointer;font-family:inherit;font-size:12px;
+  font-weight:600;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px}
 .ab:disabled{opacity:.4;cursor:not-allowed}
 .hb{background:rgba(212,160,23,.08);border-color:rgba(212,160,23,.4);color:var(--gldl)}.hb:not(:disabled):hover{background:rgba(212,160,23,.15)}
 .gb{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.35);color:var(--redl)}.gb:not(:disabled):hover{background:rgba(239,68,68,.14)}
 .fbk{border-radius:8px;padding:7px 12px;margin-bottom:7px;animation:slideUp .25s ease}
 .fok{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.35)}
 .ferr{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.35)}
-.fok .fw{font-size:17px;font-weight:700;color:var(--grnl)}.fok .fr{font-size:11px;color:var(--txt2);margin-left:6px}.fok .fm{font-size:11px;color:var(--txt2);margin-top:2px}
+.fok .fw{font-size:17px;font-weight:700;color:var(--grnl)}.fok .fr{font-size:11px;color:var(--txt2);margin-left:6px}
+.fok .fm{font-size:11px;color:var(--txt2);margin-top:2px}
 .ferr .fe{color:var(--redl);font-size:12px}
-.sp{width:13px;height:13px;border:2px solid var(--vio);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:middle;margin-right:5px}
 .fwrap{background:var(--bg2);border-radius:8px;padding:8px 10px;border:1px solid var(--bdr)}
-.fwlbl{color:var(--txt3);font-size:10px;margin-bottom:5px}.fwchips{display:flex;flex-wrap:wrap;gap:5px}
-.chip{border-radius:6px;padding:3px 7px;animation:pop .3s ease;display:flex;align-items:center;gap:5px;cursor:pointer;transition:background .15s}
+.fwlbl{color:var(--txt3);font-size:10px;margin-bottom:5px}
+.fwchips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{border-radius:6px;padding:3px 7px;animation:pop .3s ease;display:flex;align-items:center;gap:5px;cursor:pointer}
 .chip.n{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.35)}.chip.n:hover{background:rgba(16,185,129,.2)}
 .chip.g{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25)}
 .chip .cw{font-weight:700;font-size:14px}.chip.n .cw{color:var(--grnl)}.chip.g .cw{color:var(--redl)}
 .chip .cr{font-size:9px;color:var(--txt3)}
 .ccp{width:18px;height:18px;border:1px solid currentColor;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;opacity:.6;flex-shrink:0}.ccp:hover{opacity:1}
+.gload{aspect-ratio:1;max-height:280px;background:var(--bg2);border-radius:14px;border:1px solid var(--bdr);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;margin-bottom:7px}
+.bspin{width:38px;height:38px;border-width:3px;border-style:solid;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+
+/* ── WORD MODAL ── */
 #wmod{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:300;padding:20px}
 #wmod.open{display:flex}
-.wmbox{background:var(--bg2);border-radius:18px;padding:24px 20px;max-width:340px;width:100%;border:1px solid var(--bdr2);animation:pop .3s ease;max-height:85vh;overflow-y:auto}
+.wmbox{background:var(--bg2);border-radius:18px;padding:22px 18px;max-width:340px;width:100%;border:1px solid var(--bdr2);animation:pop .3s ease;max-height:88vh;overflow-y:auto}
 .wmw{font-size:36px;font-weight:900;color:var(--grnl);letter-spacing:2px}
 .wmr{font-size:14px;color:var(--txt2);margin-top:2px}
 .wmbadges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .badge{border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;border:1px solid}
 .badge.jlpt{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.4);color:var(--viol)}
 .badge.common{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.4);color:var(--grnl)}
-.wmsenses{margin-top:10px}
+.wmlbl{font-size:10px;color:var(--txt3);margin-top:12px;margin-bottom:4px}
+.wmsenses{margin-top:0}
 .sense{padding:6px 10px;background:var(--sur);border-radius:8px;border:1px solid var(--bdr);margin-bottom:4px}
 .pos{font-size:9px;font-weight:700;color:var(--ambl);background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);border-radius:4px;padding:1px 5px;margin-right:6px;vertical-align:middle}
 .meaning{font-size:13px;color:var(--txt);line-height:1.5;vertical-align:middle}
-.sinfo{font-size:10px;color:var(--txt3);margin-left:6px;font-style:italic}
-.wmlbl{font-size:10px;color:var(--txt3);margin-top:12px;margin-bottom:5px}
 .example{padding:8px 10px;background:var(--sur);border-radius:8px;border:1px solid var(--bdr);margin-bottom:5px}
 .ex-ja{font-size:13px;color:var(--txt);line-height:1.7}.ex-ja mark{background:rgba(124,58,237,.3);color:var(--viol);border-radius:3px;padding:0 2px}
-.ex-en{font-size:11px;color:var(--txt3);margin-top:3px;line-height:1.5}
-.ex-link{display:block;padding:8px 12px;background:var(--sur);border-radius:8px;border:1px solid var(--bdr);color:var(--txt2);text-decoration:none;font-size:12px;transition:background .2s}.ex-link:hover{background:var(--sur2)}
-.wmextlinks{display:flex;gap:6px;margin-top:10px}
-.extlink{flex:1;padding:7px;border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);text-decoration:none;font-size:11px;text-align:center;background:var(--sur);transition:background .2s}.extlink:hover{background:var(--sur2)}
-.ldg{color:var(--txt3);font-size:12px;padding:8px 0;text-align:center}
-.no-data{color:var(--txt3);font-size:12px;padding:8px 10px;font-style:italic}
+.ex-en{font-size:11px;color:var(--txt3);margin-top:3px}
+.ex-link{display:block;padding:8px 12px;background:var(--sur);border-radius:8px;border:1px solid var(--bdr);color:var(--txt2);text-decoration:none;font-size:12px}
+.wmextlinks{display:flex;gap:5px;margin-top:10px}
+.extlink{flex:1;padding:6px 4px;border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);text-decoration:none;font-size:10px;text-align:center;background:var(--sur)}
 .wmbtns{display:flex;gap:7px;margin-top:14px}
 .wmbtn{flex:1;border-radius:9px;padding:9px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;border:1px solid;transition:all .2s}
-.wmcp{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.4);color:#93c5fd}.wmcp:hover{background:rgba(59,130,246,.16)}
-.wmsv{background:rgba(212,160,23,.08);border-color:rgba(212,160,23,.4);color:var(--gldl)}.wmsv:hover{background:rgba(212,160,23,.16)}
-.wmcl{background:var(--sur2);border-color:var(--bdr);color:var(--txt2)}.wmcl:hover{background:var(--bdr)}
-#voc{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;flex-direction:column;z-index:250;overflow:hidden}
+.wmcp{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.4);color:#93c5fd}
+.wmsv{background:rgba(212,160,23,.08);border-color:rgba(212,160,23,.4);color:var(--gldl)}
+.wmcl{background:var(--sur2);border-color:var(--bdr);color:var(--txt2)}
+.ldg{color:var(--txt3);font-size:12px;padding:8px 0;text-align:center}
+
+/* ── VOCAB OVERLAY ── */
+#voc{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;flex-direction:column;z-index:250}
 #voc.open{display:flex}
 .vhdr{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--bdr);background:var(--bg2);flex-shrink:0}
-.vbody{flex:1;overflow-y:auto;padding:12px}.vempty{text-align:center;color:var(--txt3);font-size:13px;margin-top:40px}
-.vlg{margin-bottom:16px}.vll{font-size:11px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.vbody{flex:1;overflow-y:auto;padding:12px;max-width:480px;width:100%;margin:0 auto}
+.vempty{text-align:center;color:var(--txt3);font-size:13px;margin-top:40px}
+.vlg{margin-bottom:16px}
+.vll{font-size:11px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .vcard{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:flex-start;gap:10px}
-.vm{flex:1;min-width:0}.vw{font-size:20px;font-weight:700;color:var(--grnl)}.vr{font-size:12px;color:var(--txt2)}.vmm{font-size:12px;color:var(--txt);margin-top:4px}
+.vmn{flex:1;min-width:0}.vw{font-size:20px;font-weight:700;color:var(--grnl)}.vr{font-size:12px;color:var(--txt2)}.vmm{font-size:12px;color:var(--txt);margin-top:4px}
 .vcb{display:flex;flex-direction:column;gap:5px;flex-shrink:0}
-.vcbtn{border:1px solid var(--bdr);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:10px;background:transparent;color:var(--txt2);font-family:inherit;white-space:nowrap}.vcbtn:hover{background:var(--sur2)}
+.vcbtn{border:1px solid var(--bdr);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:10px;background:transparent;color:var(--txt2);font-family:inherit}.vcbtn:hover{background:var(--sur2)}
 .vdel{color:var(--redl);border-color:rgba(239,68,68,.3)}
-#cmod{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+
+/* ── COMPLETE MODAL ── */
+#cmod{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:flex-start;justify-content:center;z-index:200;padding:20px;overflow-y:auto}
 #cmod.open{display:flex}
-.cbox{background:var(--bg2);border-radius:20px;padding:26px 20px;text-align:center;max-width:300px;width:100%;border:1px solid var(--vio);box-shadow:0 0 40px rgba(124,58,237,.25);animation:pop .4s ease}
-.cchips{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-bottom:16px}
-.cchip{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.35);border-radius:4px;padding:1px 7px;color:var(--grnl);font-size:12px;font-weight:700}
-.cchip.g{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:var(--redl)}
-.cbtns{display:flex;gap:7px;justify-content:center}
-.cmap{background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;color:var(--txt2);padding:9px 15px;cursor:pointer;font-size:13px;font-family:inherit}
-.cnxt{background:linear-gradient(135deg,var(--vio),var(--blu));border:none;border-radius:10px;color:#fff;padding:9px 18px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit}
-.gload{aspect-ratio:1;max-height:280px;background:var(--bg2);border-radius:14px;border:1px solid var(--bdr);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;margin-bottom:7px}
-.bspin{width:38px;height:38px;border-width:3px;border-style:solid;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
-#toast{position:fixed;bottom:70px;left:50%;transform:translate(-50%,0);background:var(--sur2);border:1px solid var(--bdr2);border-radius:20px;padding:8px 18px;font-size:12px;color:var(--txt);z-index:400;display:none;white-space:nowrap;max-width:90vw;text-align:center}
-.lb{border-radius:20px;padding:2px 9px;font-size:10px;font-weight:700;border:1px solid;display:inline-block}
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
-/* ── Audio / BGM ── */
-.bgmbtn{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3);border-radius:8px;color:#93c5fd;padding:6px 10px;cursor:pointer;font-size:11px;font-family:inherit;transition:all .2s;white-space:nowrap}
-.bgmbtn.off{opacity:.45;color:var(--txt3)}
-/* ── Map character ── */
-#mchar{position:absolute;font-size:22px;transition:left .25s ease-out,top .25s ease-out;pointer-events:none;z-index:10;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));transform-origin:center bottom}
-@keyframes charBob{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.05)}}
-@keyframes charWalk{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.92) translateY(2px)}}
-.char-idle{animation:charBob 1.6s ease-in-out infinite}
-.char-walk{animation:charWalk .25s ease-in-out infinite}
-/* Map popup */
-#map-popup{position:absolute;background:var(--bg2);border:1px solid var(--vio);border-radius:12px;padding:10px 14px;z-index:20;min-width:130px;box-shadow:0 4px 20px rgba(0,0,0,.5);pointer-events:all;display:none}
-#map-popup::before{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);border:8px solid transparent;border-top-color:var(--vio);border-bottom:none}
-.popup-sid{font-size:10px;color:var(--txt3);margin-bottom:2px}
-.popup-name{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:3px}
-.popup-goal{font-size:11px;color:var(--txt2);margin-bottom:8px}
-.popup-play{width:100%;background:linear-gradient(135deg,var(--vio),var(--blu));border:none;border-radius:8px;color:#fff;padding:7px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit}
-.popup-play:hover{opacity:.9}
-.popup-done{font-size:11px;color:var(--grn);text-align:center}
-/* Zone strips */
-.zone-strip{position:absolute;left:0;right:0;border-radius:8px;pointer-events:none;opacity:.06}
-/* Map nav arrows */
-.map-nav{display:flex;justify-content:center;gap:8px;margin-top:8px}
-.nav-btn{background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);padding:6px 14px;cursor:pointer;font-size:13px;font-family:inherit}
-.nav-btn:disabled{opacity:.3;cursor:not-allowed}
-/* Missed word style */
-.cword-row.missed{opacity:.75}
-/* ── Complete modal redesign ── */
-.cbox{background:var(--bg2);border-radius:20px;padding:20px 18px;text-align:center;max-width:320px;width:100%;border:1px solid var(--vio);box-shadow:0 0 40px rgba(124,58,237,.25);animation:pop .4s ease;max-height:90vh;overflow-y:auto}
-.cmod-words{background:var(--sur);border-radius:10px;padding:8px 8px 4px;margin:10px 0;text-align:left;max-height:180px;overflow-y:auto}
-.cword-lbl{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
-.cword-lbl span{font-size:10px;color:var(--txt3)}
+.cbox{background:var(--bg2);border-radius:20px;padding:20px 16px;width:100%;max-width:340px;border:1px solid var(--vio);box-shadow:0 0 40px rgba(124,58,237,.25);animation:pop .4s ease;margin:auto}
+.cmod-sec{background:var(--sur);border-radius:10px;padding:8px;margin-bottom:10px;max-height:160px;overflow-y:auto}
+.cmod-lbl{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:10px;color:var(--txt3)}
 .saveall-btn{background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.35);color:var(--gldl);border-radius:6px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:inherit}
-.cword-row{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px;cursor:pointer;transition:background .15s;border:1px solid transparent;margin-bottom:3px}
-.cword-row:hover{background:var(--sur2);border-color:var(--bdr)}
-.cwrd{font-weight:700;font-size:15px;color:var(--grnl)}.cword-row.g .cwrd{color:var(--redl)}
-.crdr{font-size:10px;color:var(--txt3)}
+.cword-row{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px;cursor:pointer;transition:background .15s;margin-bottom:3px}
+.cword-row:hover{background:var(--sur2)}
+.cwrd{font-weight:700;font-size:14px;color:var(--grnl)}.cword-row.g .cwrd{color:var(--redl)}.cword-row.missed .cwrd{color:var(--txt2)}
+.crdr{font-size:9px;color:var(--txt3)}
 .csavebtn{margin-left:auto;background:transparent;border:1px solid rgba(212,160,23,.3);border-radius:5px;color:var(--gldl);padding:2px 6px;cursor:pointer;font-size:10px;font-family:inherit;flex-shrink:0}
-.csavebtn:hover{background:rgba(212,160,23,.15)}.csavebtn.saved{color:var(--grn);border-color:rgba(16,185,129,.3)}
-/* ── Word modal: POS badges ── */
-.wmbadges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.badge{border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;border:1px solid}
-.badge.jlpt{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.4);color:var(--viol)}
-.badge.common{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.4);color:var(--grnl)}
-.wmsenses{margin-top:8px}
-.sense{padding:6px 10px;background:var(--sur);border-radius:8px;border:1px solid var(--bdr);margin-bottom:4px}
-.pos{font-size:9px;font-weight:700;color:var(--ambl);background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);border-radius:4px;padding:1px 5px;margin-right:6px;vertical-align:middle}
-.meaning{font-size:13px;color:var(--txt);line-height:1.5;vertical-align:middle}
-.sinfo{font-size:10px;color:var(--txt3);margin-left:4px;font-style:italic}
-.example{padding:8px 10px;background:var(--sur);border-radius:8px;border:1px solid var(--bdr);margin-bottom:5px}
-.ex-ja{font-size:13px;color:var(--txt);line-height:1.7}.ex-ja mark{background:rgba(124,58,237,.3);color:var(--viol);border-radius:3px;padding:0 2px}
-.ex-en{font-size:11px;color:var(--txt3);margin-top:3px;line-height:1.5}
-.ex-link{display:block;padding:8px 12px;background:var(--sur);border-radius:8px;border:1px solid var(--bdr);color:var(--txt2);text-decoration:none;font-size:12px;transition:background .2s}.ex-link:hover{background:var(--sur2)}
-.wmextlinks{display:flex;gap:5px;margin-top:10px}
-.extlink{flex:1;padding:6px 4px;border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);text-decoration:none;font-size:10px;text-align:center;background:var(--sur);transition:background .2s;white-space:nowrap}.extlink:hover{background:var(--sur2)}
-.ldg{color:var(--txt3);font-size:12px;padding:8px 0;text-align:center}
-.no-data{color:var(--txt3);font-size:12px;padding:8px 10px;font-style:italic}
+.csavebtn.saved{color:var(--grn);border-color:rgba(16,185,129,.3)}
+.cbtns{display:flex;gap:6px}
+.cmap{background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;color:var(--txt2);padding:9px 12px;cursor:pointer;font-size:12px;font-family:inherit}
+.cnxt{background:linear-gradient(135deg,var(--vio),var(--blu));border:none;border-radius:10px;color:#fff;padding:9px 14px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit}
+
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
+.finb{background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.35);color:var(--viol)}
+.finb:not(:disabled):hover{background:rgba(124,58,237,.18)}
+.finb:disabled{opacity:.3}
+.finb.can{background:rgba(124,58,237,.15);border-color:var(--viol);color:var(--viol)}
+.finb.goal{background:linear-gradient(135deg,rgba(212,160,23,.2),rgba(124,58,237,.2));border-color:var(--gld);color:var(--gldl);animation:pulse 1.8s infinite}
+.clear-banner{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:8px 12px;margin-bottom:7px;text-align:center;font-size:12px;color:var(--grnl);display:none}
 </style>
 </head>
 <body>
-<div id="map-screen">
-  <div style="text-align:center;margin-bottom:16px;position:relative">
-    <div class="title-grad">漢字クロスパズル</div>
-    <div style="color:var(--txt3);font-size:11px;margin-top:3px">JLPT N5→N1 漢字ワード探しゲーム</div>
-    <button class="bgmbtn" id="mapbgmbtn" onclick="toggleBGM()" style="position:absolute;right:0;top:4px">🔊 BGM</button>
-  </div>
-  <div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="legend"></div>
-  <div style="position:relative" id="map-area">
-    <div class="map-box" id="smap" style="position:relative"></div>
-    <div id="mchar" class="char-idle">🧑‍🎓</div>
-    <div id="map-popup">
-      <div class="popup-sid" id="popup-sid"></div>
-      <div class="popup-name" id="popup-name"></div>
-      <div class="popup-goal" id="popup-goal"></div>
-      <div id="popup-done"></div>
-      <button class="popup-play" id="popup-play-btn" onclick="playCurrentMapStage()">▶ プレイ</button>
+
+<!-- ═══ LEVEL SELECT SCREEN ═══ -->
+<div id="level-screen" class="screen active">
+  <div class="ls-header">
+    <div style="flex:1">
+      <div class="title-grad">漢字クロスパズル</div>
     </div>
+    <button class="bgmbtn" id="bgmbtn-ls" onclick="toggleBGM()">🔊 BGM</button>
   </div>
-  <div class="map-nav">
-    <button class="nav-btn" id="nav-prev" onclick="mapMove(-1)">← 前のステージ</button>
-    <button class="nav-btn" id="nav-next" onclick="mapMove(1)">次のステージ →</button>
+  <div class="ls-subtitle">JLPT N5 → N1 レベルを選んで冒険しよう</div>
+
+  <div class="walk-area" id="level-walk">
+    <div class="walk-path" id="level-path"></div>
+    <div class="walk-char idle" id="level-char">🧑‍🎓</div>
   </div>
-  <div class="stats-box">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <span style="color:var(--txt2);font-size:12px">クリア済み</span>
-      <span style="font-weight:700;font-size:13px" id="sdone">0 / 25</span>
+
+  <div id="level-info-card">
+    <!-- JS で描画 -->
+  </div>
+
+  <div style="margin-top:auto">
+    <div class="stats-row">
+      <div>
+        <div class="stat-label">総合進捗</div>
+        <div class="stat-bar-wrap"><div class="stat-bar"><div class="stat-fill" id="stat-fill-ls" style="width:0%"></div></div></div>
+      </div>
+      <div style="text-align:right">
+        <div class="stat-val" id="stat-val-ls">0/25</div>
+        <div class="stat-label">クリア</div>
+      </div>
     </div>
-    <div class="prog-track"><div class="prog-fill" id="sbar" style="width:0%;background:linear-gradient(90deg,var(--vio),var(--blu),var(--grn))"></div></div>
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
-      <button onclick="openVoc()" style="background:rgba(212,160,23,.08);border:1px solid rgba(212,160,23,.35);color:var(--ambl);border-radius:8px;padding:6px 16px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600">📚 単語帳</button>
-      <button onclick="resetProg()" style="background:transparent;border:1px solid var(--bdr);color:var(--txt3);border-radius:6px;padding:6px 12px;font-size:11px;cursor:pointer;font-family:inherit">リセット</button>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button onclick="openVoc()" style="background:rgba(212,160,23,.08);border:1px solid rgba(212,160,23,.35);color:var(--ambl);border-radius:8px;padding:7px 16px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600">📚 単語帳</button>
+      <button onclick="if(confirm('リセットしますか？')){prog={u:1,c:[]};saveP();initLevelScreen();}" style="background:transparent;border:1px solid var(--bdr);color:var(--txt3);border-radius:8px;padding:7px 12px;font-size:11px;cursor:pointer;font-family:inherit">リセット</button>
     </div>
   </div>
 </div>
 
-<div id="game-screen">
+<!-- ═══ STAGE SELECT SCREEN ═══ -->
+<div id="stage-screen" class="screen">
+  <div class="ss-header">
+    <button class="back-btn" onclick="showLevelSelect()">← レベル選択</button>
+    <div style="flex:1;text-align:center" id="ss-level-badge"></div>
+    <button class="bgmbtn" id="bgmbtn-ss" onclick="toggleBGM()">🔊 BGM</button>
+  </div>
+  <div class="ss-title" id="ss-title"></div>
+
+  <div class="stage-walk-area" id="stage-walk">
+    <div class="stage-path" id="stage-path"></div>
+    <div class="walk-char idle" id="stage-char">🧑‍🎓</div>
+  </div>
+
+  <div id="stage-info-card"><!-- JS --></div>
+
+  <div class="nav-row">
+    <button class="nav-btn" id="snav-prev" onclick="stageMove(-1)">← 前</button>
+    <button class="nav-btn" id="snav-next" onclick="stageMove(1)">次 →</button>
+  </div>
+</div>
+
+<!-- ═══ GAME SCREEN ═══ -->
+<div id="game-screen" class="screen">
   <div class="ghdr">
-    <button class="bsm" onclick="showMap()">← Map</button>
+    <button class="bsm" onclick="backToStageSelect()">← Map</button>
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap" id="shdr"></div>
       <div style="color:var(--txt3);font-size:10px" id="sgoal"></div>
     </div>
-    <button class="bgmbtn" id="gamebgmbtn" onclick="toggleBGM()">🔊 BGM</button>
-    <button class="bsm vb" onclick="openVoc()">📚</button>
+    <button class="bsm" onclick="openVoc()" style="color:var(--ambl);border-color:rgba(245,158,11,.3)">📚</button>
     <button class="bsm" onclick="retryStage()">再挑戦</button>
   </div>
   <div class="prog-wrap">
-    <div class="prog-track" style="flex:1"><div class="prog-fill" id="pfill" style="width:0%"></div></div>
-    <div class="frac"><span class="fn" id="pf">0</span><span class="sep">/</span><span class="tn" id="pt">?</span><span style="color:var(--txt3);font-size:10px;margin-left:3px">語</span></div>
+    <div class="prog-track"><div class="prog-fill" id="pfill" style="width:0%"></div></div>
+    <div style="font-weight:700;font-size:14px;white-space:nowrap">
+      <span style="color:var(--grnl)" id="pf">0</span><span style="color:var(--txt3);margin:0 1px">/</span><span style="color:var(--txt2)" id="pt">?</span><span style="color:var(--txt3);font-size:10px;margin-left:3px">語</span>
+    </div>
     <div style="font-size:10px;color:var(--txt3)" id="pc"></div>
   </div>
   <div class="wdisp" id="wd"><span class="ht">漢字を直線でなぞって単語を作ろう</span></div>
   <div id="grid-area"></div>
+  <div id="clear-banner" class="clear-banner">✓ クリア済み — 言葉の位置を確認できます</div>
   <div class="arow">
     <button class="ab hb" id="hbtn" onclick="doHint()">💡 ヒント <span style="font-size:10px;opacity:.7" id="hleft">(3回)</span></button>
-    <button class="ab gb" id="gubtn" onclick="doGiveUp()">🏳 ギブアップ</button>
+    <button class="ab finb" id="finbtn" onclick="doFinish()" disabled>🎌 終了</button>
+  </div>
+  <div style="margin-bottom:7px">
+    <button class="ab gb" id="gubtn" onclick="doGiveUp()" style="width:100%;font-size:11px;padding:6px">🏳 ギブアップ（残りの言葉を見る）</button>
   </div>
   <div id="fbkarea"></div>
   <div class="fwrap" id="fwrap" style="display:none">
@@ -242,6 +338,7 @@ html,body{height:100%;background:var(--bg);color:var(--txt);font-family:"Hiragin
   </div>
 </div>
 
+<!-- ═══ WORD MODAL ═══ -->
 <div id="wmod">
   <div class="wmbox">
     <div id="wmw" class="wmw"></div>
@@ -260,6 +357,7 @@ html,body{height:100%;background:var(--bg);color:var(--txt);font-family:"Hiragin
   </div>
 </div>
 
+<!-- ═══ VOCAB ═══ -->
 <div id="voc">
   <div class="vhdr">
     <div style="font-size:16px;font-weight:700;color:var(--ambl)">📚 単語帳 <span id="vcnt" style="font-size:12px;color:var(--txt2);font-weight:400"></span></div>
@@ -268,146 +366,35 @@ html,body{height:100%;background:var(--bg);color:var(--txt);font-family:"Hiragin
   <div class="vbody" id="vbody"></div>
 </div>
 
+<!-- ═══ COMPLETE MODAL ═══ -->
 <div id="cmod">
   <div class="cbox">
-    <div style="font-size:40px;margin-bottom:4px" id="cemi">🎉</div>
-    <div style="font-size:18px;font-weight:900;margin-bottom:2px" id="ctitle">ステージクリア！</div>
-    <div style="color:var(--txt3);font-size:11px;margin-bottom:10px" id="csub"></div>
-    <div class="cmod-words">
-      <div class="cword-lbl">
-        <span id="cword-count">見つけた言葉</span>
-        <button class="saveall-btn" onclick="saveAllFound()">全部保存 💾</button>
-      </div>
+    <div style="font-size:40px;margin-bottom:4px;text-align:center" id="cemi">🎉</div>
+    <div style="font-size:18px;font-weight:900;margin-bottom:2px;text-align:center" id="ctitle">ステージクリア！</div>
+    <div style="color:var(--txt3);font-size:11px;margin-bottom:10px;text-align:center" id="csub"></div>
+    <div class="cmod-sec">
+      <div class="cmod-lbl"><span id="cword-count">見つけた言葉</span><button class="saveall-btn" onclick="saveAllFound()">全部保存 💾</button></div>
       <div id="cchips"></div>
     </div>
-    <div id="cmissed" style="display:none;margin-bottom:10px">
-      <div style="font-size:10px;color:var(--txt3);margin-bottom:5px;display:flex;align-items:center;gap:6px">
-        <span>😅 見つけられなかった言葉</span>
-      </div>
-      <div class="cmod-words" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2)">
-        <div id="cmissed-list"></div>
-      </div>
+    <div id="cmissed" style="display:none">
+      <div style="font-size:10px;color:var(--txt3);margin-bottom:4px">😅 見つけられなかった言葉</div>
+      <div class="cmod-sec" style="background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.15)"><div id="cmissed-list"></div></div>
     </div>
-    <div class="cbtns" style="gap:6px">
-      <button class="cmap" style="font-size:12px;padding:8px 10px" onclick="showMap()">🗺 マップ</button>
-      <button class="cmap" style="font-size:12px;padding:8px 10px;color:var(--ambl);border-color:rgba(245,158,11,.3)" onclick="openVocFromComplete()">📚 単語帳</button>
-      <button class="cnxt" style="font-size:12px;padding:8px 14px" id="cnxt" onclick="goNext()">次へ →</button>
+    <div class="cbtns" style="gap:5px;flex-wrap:wrap">
+      <button class="cmap" style="font-size:11px;padding:8px 10px" onclick="returnToGrid()">🔍 グリッドを見る</button>
+      <button class="cmap" style="font-size:11px;padding:8px 10px" onclick="backToStageSelect();document.getElementById('cmod').classList.remove('open')">🗺 Map</button>
+      <button class="cmap" style="font-size:11px;padding:8px 10px;color:var(--ambl);border-color:rgba(245,158,11,.3)" onclick="openVocFromComplete()">📚</button>
+      <button class="cnxt" style="font-size:12px;padding:8px 12px" id="cnxt" onclick="goNext()">次へ →</button>
     </div>
   </div>
 </div>
+
 <div id="toast"></div>
 
 <script>
-
-
-// ─── JLPT別 単語リスト（グリッド生成用）───
-const WL = {
-  N5:[
-    {w:'日本',r:'にほん',m:'Japan'},{w:'学校',r:'がっこう',m:'school'},
-    {w:'電車',r:'でんしゃ',m:'train'},{w:'天気',r:'てんき',m:'weather'},
-    {w:'先生',r:'せんせい',m:'teacher'},{w:'男女',r:'だんじょ',m:'men and women'},
-    {w:'父母',r:'ふぼ',m:'parents'},{w:'山川',r:'やまかわ',m:'mountains and rivers'},
-    {w:'上下',r:'じょうげ',m:'up and down'},{w:'左右',r:'さゆう',m:'left and right'},
-    {w:'人口',r:'じんこう',m:'population'},{w:'東西',r:'とうざい',m:'east and west'},
-    {w:'南北',r:'なんぼく',m:'north and south'},{w:'大小',r:'だいしょう',m:'large and small'},
-    {w:'前後',r:'ぜんご',m:'front and back'},{w:'国語',r:'こくご',m:'national language'},
-    {w:'体力',r:'たいりょく',m:'physical strength'},{w:'半年',r:'はんとし',m:'half a year'},
-    {w:'年月',r:'ねんげつ',m:'years and months'},{w:'半分',r:'はんぶん',m:'half'},
-    {w:'百万',r:'ひゃくまん',m:'one million'},{w:'千万',r:'せんまん',m:'ten million'},
-    {w:'百円',r:'ひゃくえん',m:'100 yen'},{w:'千円',r:'せんえん',m:'1000 yen'},
-    {w:'大人',r:'おとな',m:'adult'},{w:'大学',r:'だいがく',m:'university'},
-    {w:'学生',r:'がくせい',m:'student'},{w:'電気',r:'でんき',m:'electricity'},
-    {w:'気分',r:'きぶん',m:'feeling, mood'},{w:'人気',r:'にんき',m:'popularity'},
-    {w:'本気',r:'ほんき',m:'seriousness'},{w:'上手',r:'じょうず',m:'skilled, good at'},
-    {w:'下手',r:'へた',m:'unskilled, bad at'},{w:'右手',r:'みぎて',m:'right hand'},
-    {w:'左手',r:'ひだりて',m:'left hand'},{w:'手本',r:'てほん',m:'model, example'},
-    {w:'山道',r:'やまみち',m:'mountain path'},{w:'水道',r:'すいどう',m:'water supply'},
-    {w:'電力',r:'でんりょく',m:'electric power'},{w:'水力',r:'すいりょく',m:'water power'},
-    {w:'気力',r:'きりょく',m:'willpower'},{w:'学力',r:'がくりょく',m:'academic ability'},
-    {w:'女子',r:'じょし',m:'girl, female'},{w:'男子',r:'だんし',m:'boy, male'},
-    {w:'父子',r:'ふし',m:'father and child'},{w:'母子',r:'ぼし',m:'mother and child'},
-    {w:'天下',r:'てんか',m:'the whole world'},{w:'月日',r:'つきひ',m:'days and months'},
-    {w:'本国',r:'ほんごく',m:'home country'},{w:'本心',r:'ほんしん',m:'true feelings'},
-    {w:'友人',r:'ゆうじん',m:'friend'},{w:'先手',r:'せんて',m:'first move'},
-    {w:'日本語',r:'にほんご',m:'Japanese language'},{w:'中学',r:'ちゅうがく',m:'middle school'},
-    {w:'中心',r:'ちゅうしん',m:'center'},{w:'中国',r:'ちゅうごく',m:'China'},
-    {w:'国道',r:'こくどう',m:'national road'},{w:'人体',r:'じんたい',m:'human body'},
-    {w:'先月',r:'せんげつ',m:'last month'},{w:'学年',r:'がくねん',m:'school year'},
-    {w:'小学',r:'しょうがく',m:'elementary school'},{w:'手足',r:'てあし',m:'hands and feet'},
-    {w:'火山',r:'かざん',m:'volcano'},{w:'水田',r:'すいでん',m:'paddy field'},
-    {w:'手口',r:'てぐち',m:'method, trick'},{w:'耳目',r:'じもく',m:'ears and eyes'},
-    {w:'道心',r:'どうしん',m:'dedication'},{w:'国土',r:'こくど',m:'national territory'},
-  ],
-  N4:[
-    {w:'会社',r:'かいしゃ',m:'company'},{w:'社員',r:'しゃいん',m:'company employee'},
-    {w:'会員',r:'かいいん',m:'member'},{w:'店員',r:'てんいん',m:'shop clerk'},
-    {w:'店長',r:'てんちょう',m:'store manager'},{w:'社長',r:'しゃちょう',m:'company president'},
-    {w:'教員',r:'きょういん',m:'teacher'},{w:'入口',r:'いりぐち',m:'entrance'},
-    {w:'出口',r:'でぐち',m:'exit'},{w:'入社',r:'にゅうしゃ',m:'joining a company'},
-    {w:'出社',r:'しゅっしゃ',m:'going to work'},{w:'帰国',r:'きこく',m:'returning home'},
-    {w:'入学',r:'にゅうがく',m:'entering school'},{w:'春夏',r:'しゅんか',m:'spring and summer'},
-    {w:'秋冬',r:'しゅうとう',m:'autumn and winter'},{w:'朝昼',r:'あさひる',m:'morning and noon'},
-    {w:'来週',r:'らいしゅう',m:'next week'},{w:'毎週',r:'まいしゅう',m:'every week'},
-    {w:'毎朝',r:'まいあさ',m:'every morning'},{w:'毎年',r:'まいとし',m:'every year'},
-    {w:'毎日',r:'まいにち',m:'every day'},{w:'来年',r:'らいねん',m:'next year'},
-    {w:'来春',r:'らいしゅん',m:'next spring'},{w:'朝食',r:'ちょうしょく',m:'breakfast'},
-    {w:'夜食',r:'やしょく',m:'late night snack'},{w:'勉強',r:'べんきょう',m:'studying'},
-    {w:'思考',r:'しこう',m:'thinking'},{w:'有名',r:'ゆうめい',m:'famous'},
-    {w:'明暗',r:'めいあん',m:'light and dark'},{w:'白黒',r:'しろくろ',m:'black and white'},
-    {w:'早速',r:'さっそく',m:'immediately'},{w:'近所',r:'きんじょ',m:'neighborhood'},
-    {w:'住所',r:'じゅうしょ',m:'address'},{w:'長所',r:'ちょうしょ',m:'strong point'},
-    {w:'短所',r:'たんしょ',m:'weak point'},{w:'長短',r:'ちょうたん',m:'length; merits and demerits'},
-    {w:'所長',r:'しょちょう',m:'director'},{w:'売買',r:'ばいばい',m:'buying and selling'},
-    {w:'飲食',r:'いんしょく',m:'food and drink'},{w:'古来',r:'こらい',m:'from ancient times'},
-    {w:'広大',r:'こうだい',m:'vast'},{w:'重大',r:'じゅうだい',m:'serious, grave'},
-    {w:'数学',r:'すうがく',m:'mathematics'},{w:'新人',r:'しんじん',m:'newcomer'},
-    {w:'強大',r:'きょうだい',m:'powerful'},{w:'来日',r:'らいにち',m:'visiting Japan'},
-    {w:'毎月',r:'まいつき',m:'every month'},{w:'近年',r:'きんねん',m:'recent years'},
-    {w:'新年',r:'しんねん',m:'new year'},{w:'明日',r:'あした|みょうにち',m:'tomorrow'},
-    {w:'朝日',r:'あさひ',m:'morning sun'},{w:'昼食',r:'ちゅうしょく',m:'lunch'},
-    {w:'知名',r:'ちめい',m:'well-known'},{w:'有力',r:'ゆうりょく',m:'influential'},
-  ],
-  N3:[
-    {w:'変化',r:'へんか',m:'change'},{w:'以上',r:'いじょう',m:'more than, above'},
-    {w:'以下',r:'いか',m:'less than, below'},{w:'以前',r:'いぜん',m:'before'},
-    {w:'以後',r:'いご',m:'after'},{w:'基本',r:'きほん',m:'basis, foundation'},
-    {w:'感動',r:'かんどう',m:'deep emotion'},{w:'感覚',r:'かんかく',m:'sense'},
-    {w:'記録',r:'きろく',m:'record'},{w:'記念',r:'きねん',m:'commemoration'},
-    {w:'特別',r:'とくべつ',m:'special'},{w:'特産',r:'とくさん',m:'specialty product'},
-    {w:'発展',r:'はってん',m:'development'},{w:'発見',r:'はっけん',m:'discovery'},
-    {w:'練習',r:'れんしゅう',m:'practice'},{w:'専門',r:'せんもん',m:'specialty'},
-    {w:'改革',r:'かいかく',m:'reform'},{w:'案内',r:'あんない',m:'guidance'},
-    {w:'向上',r:'こうじょう',m:'improvement'},{w:'反省',r:'はんせい',m:'reflection'},
-    {w:'共同',r:'きょうどう',m:'joint, cooperative'},{w:'低下',r:'ていか',m:'decline'},
-    {w:'格差',r:'かくさ',m:'disparity'},{w:'化学',r:'かがく',m:'chemistry'},
-    {w:'位置',r:'いち',m:'position'},{w:'続行',r:'ぞっこう',m:'continuation'},
-    {w:'設定',r:'せってい',m:'setting'},{w:'盛大',r:'せいだい',m:'grand'},
-    {w:'比較',r:'ひかく',m:'comparison'},{w:'根本',r:'こんぽん',m:'root, foundation'},
-    {w:'育成',r:'いくせい',m:'cultivation'},{w:'続出',r:'ぞくしゅつ',m:'emerging one after another'},
-  ],
-  N2:[
-    {w:'増加',r:'ぞうか',m:'increase'},{w:'拡大',r:'かくだい',m:'expansion'},
-    {w:'縮小',r:'しゅくしょう',m:'reduction'},{w:'援助',r:'えんじょ',m:'aid'},
-    {w:'採用',r:'さいよう',m:'hiring'},{w:'破壊',r:'はかい',m:'destruction'},
-    {w:'症状',r:'しょうじょう',m:'symptoms'},{w:'疑問',r:'ぎもん',m:'question, doubt'},
-    {w:'暴力',r:'ぼうりょく',m:'violence'},{w:'炎上',r:'えんじょう',m:'controversy'},
-    {w:'脱出',r:'だっしゅつ',m:'escape'},{w:'緊張',r:'きんちょう',m:'tension'},
-    {w:'絶対',r:'ぜったい',m:'absolute'},{w:'転落',r:'てんらく',m:'fall'},
-    {w:'鉄道',r:'てつどう',m:'railway'},{w:'銀行',r:'ぎんこう',m:'bank'},
-    {w:'恋愛',r:'れんあい',m:'love, romance'},{w:'幸運',r:'こううん',m:'good luck'},
-    {w:'危機',r:'きき',m:'crisis'},{w:'増大',r:'ぞうだい',m:'growth'},
-  ],
-  N1:[
-    {w:'哲学',r:'てつがく',m:'philosophy'},{w:'壮大',r:'そうだい',m:'grand'},
-    {w:'廉価',r:'れんか',m:'low price'},{w:'憤慨',r:'ふんがい',m:'indignation'},
-    {w:'摂取',r:'せっしゅ',m:'intake'},{w:'渇望',r:'かつぼう',m:'craving'},
-    {w:'盲点',r:'もうてん',m:'blind spot'},{w:'粛清',r:'しゅくせい',m:'purge'},
-    {w:'緻密',r:'ちみつ',m:'meticulous'},{w:'錯覚',r:'さっかく',m:'illusion'},
-    {w:'衷心',r:'ちゅうしん',m:'from the bottom of one\'s heart'},
-  ],
-};
-
-// ─── KANJI POOLS ───
+// ════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════
 const KP={
   N5:['日','月','火','水','木','金','土','山','川','田','人','口','手','目','足','耳','大','小','中','上','下','左','右','前','後','東','西','南','北','国','語','学','校','電','車','気','天','本','年','時','分','半','百','千','万','円','男','女','子','母','父','先','生','友','力','体','心','道'],
   N4:['春','夏','秋','冬','朝','昼','夜','週','毎','来','去','帰','入','出','会','社','員','長','店','食','飲','買','売','作','使','働','勉','強','教','住','所','数','知','思','考','良','広','短','重','新','古','近','遠','早','速','明','暗','寒','暑','有','名','色','黒','白','赤','青'],
@@ -416,8 +403,16 @@ const KP={
   N1:['哲','嗅','嘲','嘱','塞','壮','奔','妄','嫉','宛','寡','廉','弄','悼','惧','愁','憤','拙','摂','擁','斡','暦','杖','棄','殻','渇','漸','烏','琢','疎','盲','矛','窒','窮','粛','紺','緻','縛','繕','翁','肝','膜','臆','艶','蔑','藤','衷','詐','謁','謡','赦','踪','遮','錯','陥','隠','韻','顎','髄'],
 };
 const LC={N5:'#10b981',N4:'#3b82f6',N3:'#f59e0b',N2:'#ef4444',N1:'#8b5cf6'};
+const LEVELS=['N5','N4','N3','N2','N1'];
+const LEVEL_INFO={
+  N5:{name:'ビギナー',desc:'基礎漢字でウォームアップ',emoji:'🌱'},
+  N4:{name:'初級',desc:'日常語の熟語に挑戦',emoji:'📖'},
+  N3:{name:'中級',desc:'より豊かな表現を学ぼう',emoji:'⚔️'},
+  N2:{name:'上級',desc:'難読語・複合語に挑む',emoji:'🔥'},
+  N1:{name:'達人',desc:'最難関の漢字をマスター',emoji:'👑'},
+};
 const STAGES=[
-  {id:1,level:'N5',name:'入門',emoji:'🌱',cw:2},{id:2,level:'N5',name:'基礎',emoji:'📖',cw:3},
+  {id:1,level:'N5',name:'入門',emoji:'🌱',cw:3},{id:2,level:'N5',name:'基礎',emoji:'📖',cw:3},
   {id:3,level:'N5',name:'練習',emoji:'✏️',cw:4},{id:4,level:'N5',name:'挑戦',emoji:'⚡',cw:5},
   {id:5,level:'N5',name:'N5制覇',emoji:'👑',cw:6},{id:6,level:'N4',name:'N4開幕',emoji:'🚪',cw:3},
   {id:7,level:'N4',name:'成長',emoji:'🌿',cw:4},{id:8,level:'N4',name:'探求',emoji:'🔍',cw:5},
@@ -431,25 +426,413 @@ const STAGES=[
   {id:23,level:'N1',name:'境地',emoji:'🌌',cw:5},{id:24,level:'N1',name:'超越',emoji:'🎆',cw:6},
   {id:25,level:'N1',name:'漢字神',emoji:'🏯',cw:7},
 ];
-const MAP_ROWS=[[1,2,3,4,5],[10,9,8,7,6],[11,12,13,14,15],[20,19,18,17,16],[21,22,23,24,25]];
 const DIRS=[[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+const WL={
+  N5:[{w:'日本',r:'にほん',m:'Japan'},{w:'学校',r:'がっこう',m:'school'},{w:'電車',r:'でんしゃ',m:'train'},{w:'天気',r:'てんき',m:'weather'},{w:'先生',r:'せんせい',m:'teacher'},{w:'男女',r:'だんじょ',m:'men and women'},{w:'父母',r:'ふぼ',m:'parents'},{w:'山川',r:'やまかわ',m:'mountains and rivers'},{w:'上下',r:'じょうげ',m:'up and down'},{w:'左右',r:'さゆう',m:'left and right'},{w:'人口',r:'じんこう',m:'population'},{w:'東西',r:'とうざい',m:'east and west'},{w:'南北',r:'なんぼく',m:'north and south'},{w:'大小',r:'だいしょう',m:'large and small'},{w:'前後',r:'ぜんご',m:'front and back'},{w:'国語',r:'こくご',m:'national language'},{w:'体力',r:'たいりょく',m:'physical strength'},{w:'半年',r:'はんとし',m:'half a year'},{w:'年月',r:'ねんげつ',m:'years and months'},{w:'半分',r:'はんぶん',m:'half'},{w:'百万',r:'ひゃくまん',m:'one million'},{w:'千万',r:'せんまん',m:'ten million'},{w:'百円',r:'ひゃくえん',m:'100 yen'},{w:'千円',r:'せんえん',m:'1000 yen'},{w:'大人',r:'おとな',m:'adult'},{w:'大学',r:'だいがく',m:'university'},{w:'学生',r:'がくせい',m:'student'},{w:'電気',r:'でんき',m:'electricity'},{w:'気分',r:'きぶん',m:'feeling'},{w:'人気',r:'にんき',m:'popularity'},{w:'本気',r:'ほんき',m:'seriousness'},{w:'上手',r:'じょうず',m:'skilled'},{w:'下手',r:'へた',m:'unskilled'},{w:'右手',r:'みぎて',m:'right hand'},{w:'左手',r:'ひだりて',m:'left hand'},{w:'手本',r:'てほん',m:'model, example'},{w:'山道',r:'やまみち',m:'mountain path'},{w:'水道',r:'すいどう',m:'water supply'},{w:'電力',r:'でんりょく',m:'electric power'},{w:'気力',r:'きりょく',m:'willpower'},{w:'学力',r:'がくりょく',m:'academic ability'},{w:'女子',r:'じょし',m:'girl, female'},{w:'男子',r:'だんし',m:'boy, male'},{w:'父子',r:'ふし',m:'father and child'},{w:'母子',r:'ぼし',m:'mother and child'},{w:'天下',r:'てんか',m:'the whole world'},{w:'月日',r:'つきひ',m:'days and months'},{w:'本心',r:'ほんしん',m:'true feelings'},{w:'友人',r:'ゆうじん',m:'friend'},{w:'日本語',r:'にほんご',m:'Japanese language'},{w:'中学',r:'ちゅうがく',m:'middle school'},{w:'中心',r:'ちゅうしん',m:'center'},{w:'中国',r:'ちゅうごく',m:'China'},{w:'国道',r:'こくどう',m:'national road'},{w:'先月',r:'せんげつ',m:'last month'},{w:'学年',r:'がくねん',m:'school year'},{w:'手足',r:'てあし',m:'hands and feet'},{w:'火山',r:'かざん',m:'volcano'},{w:'水田',r:'すいでん',m:'paddy field'},{w:'手口',r:'てぐち',m:'method, trick'}],
+  N4:[{w:'会社',r:'かいしゃ',m:'company'},{w:'社員',r:'しゃいん',m:'employee'},{w:'会員',r:'かいいん',m:'member'},{w:'店員',r:'てんいん',m:'clerk'},{w:'店長',r:'てんちょう',m:'store manager'},{w:'社長',r:'しゃちょう',m:'president'},{w:'入口',r:'いりぐち',m:'entrance'},{w:'出口',r:'でぐち',m:'exit'},{w:'入社',r:'にゅうしゃ',m:'joining a company'},{w:'帰国',r:'きこく',m:'returning home'},{w:'入学',r:'にゅうがく',m:'entering school'},{w:'春夏',r:'しゅんか',m:'spring and summer'},{w:'秋冬',r:'しゅうとう',m:'autumn and winter'},{w:'朝昼',r:'あさひる',m:'morning and noon'},{w:'来週',r:'らいしゅう',m:'next week'},{w:'毎週',r:'まいしゅう',m:'every week'},{w:'毎朝',r:'まいあさ',m:'every morning'},{w:'毎年',r:'まいとし',m:'every year'},{w:'毎日',r:'まいにち',m:'every day'},{w:'来年',r:'らいねん',m:'next year'},{w:'朝食',r:'ちょうしょく',m:'breakfast'},{w:'夜食',r:'やしょく',m:'late night snack'},{w:'勉強',r:'べんきょう',m:'studying'},{w:'思考',r:'しこう',m:'thinking'},{w:'有名',r:'ゆうめい',m:'famous'},{w:'明暗',r:'めいあん',m:'light and dark'},{w:'白黒',r:'しろくろ',m:'black and white'},{w:'早速',r:'さっそく',m:'immediately'},{w:'近所',r:'きんじょ',m:'neighborhood'},{w:'住所',r:'じゅうしょ',m:'address'},{w:'長所',r:'ちょうしょ',m:'strong point'},{w:'短所',r:'たんしょ',m:'weak point'},{w:'長短',r:'ちょうたん',m:'length; pros and cons'},{w:'売買',r:'ばいばい',m:'buying and selling'},{w:'飲食',r:'いんしょく',m:'food and drink'},{w:'広大',r:'こうだい',m:'vast'},{w:'重大',r:'じゅうだい',m:'serious'},{w:'数学',r:'すうがく',m:'mathematics'},{w:'新人',r:'しんじん',m:'newcomer'},{w:'強大',r:'きょうだい',m:'powerful'},{w:'毎月',r:'まいつき',m:'every month'},{w:'近年',r:'きんねん',m:'recent years'},{w:'新年',r:'しんねん',m:'new year'},{w:'明日',r:'あした',m:'tomorrow'},{w:'朝日',r:'あさひ',m:'morning sun'},{w:'昼食',r:'ちゅうしょく',m:'lunch'}],
+  N3:[{w:'変化',r:'へんか',m:'change'},{w:'以上',r:'いじょう',m:'above, more than'},{w:'以下',r:'いか',m:'below, less than'},{w:'以前',r:'いぜん',m:'before'},{w:'以後',r:'いご',m:'after'},{w:'基本',r:'きほん',m:'basis, foundation'},{w:'感動',r:'かんどう',m:'deep emotion'},{w:'感覚',r:'かんかく',m:'sense, feeling'},{w:'記録',r:'きろく',m:'record'},{w:'記念',r:'きねん',m:'commemoration'},{w:'特別',r:'とくべつ',m:'special'},{w:'特産',r:'とくさん',m:'specialty product'},{w:'発展',r:'はってん',m:'development'},{w:'発見',r:'はっけん',m:'discovery'},{w:'練習',r:'れんしゅう',m:'practice'},{w:'専門',r:'せんもん',m:'specialty'},{w:'改革',r:'かいかく',m:'reform'},{w:'案内',r:'あんない',m:'guidance'},{w:'向上',r:'こうじょう',m:'improvement'},{w:'反省',r:'はんせい',m:'reflection'},{w:'共同',r:'きょうどう',m:'joint, cooperative'},{w:'低下',r:'ていか',m:'decline'},{w:'格差',r:'かくさ',m:'disparity'},{w:'化学',r:'かがく',m:'chemistry'},{w:'続行',r:'ぞっこう',m:'continuation'},{w:'設定',r:'せってい',m:'setting'},{w:'盛大',r:'せいだい',m:'grand'}],
+  N2:[{w:'増加',r:'ぞうか',m:'increase'},{w:'拡大',r:'かくだい',m:'expansion'},{w:'縮小',r:'しゅくしょう',m:'reduction'},{w:'援助',r:'えんじょ',m:'aid'},{w:'採用',r:'さいよう',m:'hiring'},{w:'破壊',r:'はかい',m:'destruction'},{w:'症状',r:'しょうじょう',m:'symptoms'},{w:'疑問',r:'ぎもん',m:'doubt'},{w:'暴力',r:'ぼうりょく',m:'violence'},{w:'炎上',r:'えんじょう',m:'controversy'},{w:'脱出',r:'だっしゅつ',m:'escape'},{w:'緊張',r:'きんちょう',m:'tension'},{w:'絶対',r:'ぜったい',m:'absolute'},{w:'転落',r:'てんらく',m:'fall'},{w:'鉄道',r:'てつどう',m:'railway'},{w:'銀行',r:'ぎんこう',m:'bank'},{w:'恋愛',r:'れんあい',m:'love, romance'},{w:'幸運',r:'こううん',m:'good luck'},{w:'危機',r:'きき',m:'crisis'},{w:'増大',r:'ぞうだい',m:'growth'}],
+  N1:[{w:'哲学',r:'てつがく',m:'philosophy'},{w:'壮大',r:'そうだい',m:'grand'},{w:'廉価',r:'れんか',m:'low price'},{w:'憤慨',r:'ふんがい',m:'indignation'},{w:'摂取',r:'せっしゅ',m:'intake'},{w:'渇望',r:'かつぼう',m:'craving'},{w:'盲点',r:'もうてん',m:'blind spot'},{w:'粛清',r:'しゅくせい',m:'purge'},{w:'緻密',r:'ちみつ',m:'meticulous'},{w:'錯覚',r:'さっかく',m:'illusion'},{w:'衷心',r:'ちゅうしん',m:"from the heart"}],
+};
 
-// ─── STATE ───
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
 let prog={u:1,c:[]};
+try{const s=localStorage.getItem('kpv6');if(s)prog=JSON.parse(s);}catch(e){}
+function saveP(){try{localStorage.setItem('kpv6',JSON.stringify(prog));}catch(e){}}
+
+let currentScreen='levelSelect';
+let lvlCharPos=0;   // 0-4  N5-N1 on level select
+let stgCharPos=0;   // 0-4  stage within level select
+let lvlWalking=false,stgWalking=false;
+let selectedLevel=null;
 let cStage=null,G=null,kWords=[],fWords=[],totW=0;
 let sel=[],selDir=null,isDrag=false,isVal=false;
 let hLeft=3,hTimer=null,fbkTimer=null,curW=null,givenUp=false;
-try{const s=localStorage.getItem('kpv5');if(s)prog=JSON.parse(s);}catch(e){}
-function saveP(){try{localStorage.setItem('kpv5',JSON.stringify(prog));}catch(e){}}
 
-// ─── UTILS ───
-function pool(lvl){const o=['N5','N4','N3','N2','N1'];return o.slice(0,o.indexOf(lvl)+1).flatMap(l=>KP[l]);}
-function cumWL(lvl){const o=['N5','N4','N3','N2','N1'];return o.slice(0,o.indexOf(lvl)+1).flatMap(l=>WL[l]||[]);}
+// ════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════
+function pool(lvl){const i=LEVELS.indexOf(lvl);return LEVELS.slice(0,i+1).flatMap(l=>KP[l]);}
+function cumWL(lvl){const i=LEVELS.indexOf(lvl);return LEVELS.slice(0,i+1).flatMap(l=>WL[l]||[]);}
 function isV(r,c){return r>=0&&r<5&&c>=0&&c<5;}
-function sst(id){if(prog.c.includes(id))return'done';if(id===prog.u)return'cur';if(id<prog.u)return'unl';return'locked';}
-function findCells(word){if(!G)return null;for(let r=0;r<5;r++)for(let c=0;c<5;c++)for(const[dr,dc]of DIRS){let ok=true;const cells=[];for(let i=0;i<word.length;i++){const nr=r+dr*i,nc=c+dc*i;if(!isV(nr,nc)||G[nr][nc]!==word[i]){ok=false;break;}cells.push({r:nr,c:nc});}if(ok)return cells;}return null;}
+function lvlStages(lvl){return STAGES.filter(s=>s.level===lvl);}
+function lvlUnlocked(idx){
+  if(idx===0)return true;
+  const prev=LEVELS[idx-1];
+  return lvlStages(prev).some(s=>prog.c.includes(s.id));
+}
+function stgStatus(id){
+  if(prog.c.includes(id))return'done';
+  if(id<=prog.u)return'unlocked';
+  return'locked';
+}
+function findCells(word){
+  if(!G)return null;
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++)for(const[dr,dc]of DIRS){
+    let ok=true;const cells=[];
+    for(let i=0;i<word.length;i++){const nr=r+dr*i,nc=c+dc*i;if(!isV(nr,nc)||G[nr][nc]!==word[i]){ok=false;break;}cells.push({r:nr,c:nc});}
+    if(ok)return cells;
+  }
+  return null;
+}
 
-// ─── GRID GENERATION ───
+// ════════════════════════════════════════════
+// AUDIO — 完全クリーン実装
+// ════════════════════════════════════════════
+let AC=null,bgmOn=localStorage.getItem('kp_bgm')!=='off';
+let bgmRunning=false,bgmSched=null;
+let bgmMI=0,bgmBI=0,bgmMT=0,bgmBT=0;
+
+// 陽気なJRPG風メロディ C major 108BPM
+const BPM=108,Q=60/BPM;
+const MEL=[
+  [523.25,1],[659.25,1],[783.99,2],
+  [659.25,1],[587.33,1],[523.25,2],
+  [392,1],[440,1],[523.25,1],[440,1],
+  [392,4],
+  [659.25,1],[783.99,1],[880,1],[783.99,1],
+  [659.25,1],[587.33,1],[523.25,2],
+  [440,1],[523.25,1],[587.33,1],[523.25,1],
+  [523.25,4],
+];
+const BASS=[
+  [130.81,2],[196,2],[130.81,2],[110,2],
+  [130.81,2],[196,2],[164.81,2],[196,2],
+];
+// パーカッション: hi-hat タイミング(拍単位)
+const HHAT_BEAT=0.5;
+let bgmHT=0,bgmHTI=0;
+
+function initAC(){
+  if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();
+  return AC;
+}
+function note(freq,t,dur,vol,wave='triangle'){
+  try{
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.connect(g);g.connect(AC.destination);
+    o.type=wave;o.frequency.value=freq;
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(vol,t+0.025);
+    g.gain.setValueAtTime(vol*0.6,t+dur-0.06);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    o.start(t);o.stop(t+dur+0.06);
+  }catch(e){}
+}
+function hihat(t,vol=0.022){
+  try{
+    const buf=AC.createBuffer(1,Math.round(AC.sampleRate*0.04),AC.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,4);
+    const s=AC.createBufferSource(),g=AC.createGain();
+    s.buffer=buf;s.connect(g);g.connect(AC.destination);
+    g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.04);
+    s.start(t);s.stop(t+0.05);
+  }catch(e){}
+}
+function bgmSchedule(){
+  if(!bgmRunning)return;
+  const LA=0.22,now=AC.currentTime;
+  while(bgmMT<now+LA){
+    const[f,d]=MEL[bgmMI%MEL.length];
+    if(f>0)note(f,bgmMT,d*Q*0.78,0.09);
+    bgmMT+=d*Q;bgmMI++;
+  }
+  while(bgmBT<now+LA){
+    const[f,d]=BASS[bgmBI%BASS.length];
+    if(f>0)note(f,bgmBT,d*Q*0.55,0.048,'sine');
+    bgmBT+=d*Q;bgmBI++;
+  }
+  while(bgmHT<now+LA){
+    hihat(bgmHT,0.018);
+    bgmHT+=HHAT_BEAT*Q;bgmHTI++;
+  }
+  bgmSched=setTimeout(bgmSchedule,22);
+}
+function startBGM(){
+  if(bgmRunning)return;
+  try{
+    initAC();
+    const go=()=>{
+      bgmRunning=true;
+      bgmMT=AC.currentTime+0.1;bgmBT=AC.currentTime+0.1;bgmHT=AC.currentTime+0.1;
+      bgmMI=0;bgmBI=0;bgmHTI=0;
+      bgmSchedule();
+    };
+    AC.state==='suspended'?AC.resume().then(go):go();
+  }catch(e){}
+}
+function stopBGM(){
+  bgmRunning=false;
+  if(bgmSched){clearTimeout(bgmSched);bgmSched=null;}
+}
+function toggleBGM(){
+  bgmOn=!bgmOn;
+  localStorage.setItem('kp_bgm',bgmOn?'on':'off');
+  bgmOn?startBGM():stopBGM();
+  updateBGMBtns();
+}
+function updateBGMBtns(){
+  document.querySelectorAll('.bgmbtn').forEach(b=>{
+    b.textContent=bgmOn?'🔊 BGM':'🔇 BGM';
+    b.classList.toggle('off',!bgmOn);
+  });
+}
+// SFX
+function sfx(type){
+  try{
+    initAC();const now=AC.currentTime;
+    if(type==='ok'){
+      [[523.25,0],[659.25,.1],[783.99,.2]].forEach(([f,d])=>{
+        note(f,now+d,.5,.18,'sine');
+      });
+    }else if(type==='ng'){
+      note(200,now,.08,.12,'sawtooth');
+      note(140,now+.06,.14,.12,'sawtooth');
+    }else if(type==='clear'){
+      [523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=>note(f,now+i*.09,.65,.16,'sine'));
+    }
+  }catch(e){}
+}
+let bgmTouched=false;
+document.addEventListener('pointerdown',()=>{
+  if(!bgmTouched&&bgmOn){bgmTouched=true;try{initAC();AC.state==='suspended'?AC.resume().then(startBGM):startBGM();}catch(e){}}
+},{passive:true});
+
+// ════════════════════════════════════════════
+// SCREEN NAVIGATION
+// ════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  currentScreen=id.replace('-screen','').replace('level','levelSelect').replace('stage','stageSelect').replace('game','game');
+}
+
+// ── LEVEL SELECT ──
+function initLevelScreen(){
+  showScreen('level-screen');
+  renderLevelMap();
+  updateBGMBtns();
+  // progress
+  const done=prog.c.length;
+  document.getElementById('stat-fill-ls').style.width=`${(done/25)*100}%`;
+  document.getElementById('stat-val-ls').textContent=`${done}/25`;
+}
+
+function renderLevelMap(){
+  const path=document.getElementById('level-path');
+  path.innerHTML='';
+  LEVELS.forEach((lv,idx)=>{
+    const lc=LC[lv];
+    const unlocked=lvlUnlocked(idx);
+    const stages=lvlStages(lv);
+    const done=stages.filter(s=>prog.c.includes(s.id)).length;
+    const isCurrent=idx===lvlCharPos;
+    const node=document.createElement('button');
+    node.className='wnode'+(unlocked?(isCurrent?' current':''):' locked');
+    node.style.borderColor=unlocked?(isCurrent?lc:lc+'70'):'#1e2d4a';
+    node.style.color=unlocked?lc:'#2d3748';
+    if(!unlocked)node.disabled=true;
+    node.innerHTML=`<span class="wn-label">${lv}</span><span class="wn-prog">${unlocked?done+'/5':'🔒'}</span>`;
+    node.onclick=()=>clickLevel(idx);
+    path.appendChild(node);
+    if(idx<4){const line=document.createElement('div');line.style.cssText='flex:1;height:3px;background:var(--bdr2);border-radius:2px';path.appendChild(line);}
+  });
+  posLevelChar(lvlCharPos,false);
+  renderLevelCard(lvlCharPos);
+}
+
+function posLevelChar(idx,anim){
+  const char=document.getElementById('level-char');
+  const nodes=document.querySelectorAll('#level-path .wnode');
+  if(!nodes[idx])return;
+  const area=document.getElementById('level-walk');
+  const ar=area.getBoundingClientRect(),nr=nodes[idx].getBoundingClientRect();
+  const left=nr.left-ar.left+nr.width/2-11;
+  char.style.left=left+'px';
+  if(!anim){char.style.transition='none';requestAnimationFrame(()=>{requestAnimationFrame(()=>{char.style.transition='left .2s ease-out';});});}
+}
+
+async function clickLevel(idx){
+  if(lvlWalking)return;
+  if(!lvlUnlocked(idx)){showToast('🔒 前のレベルをクリアして解放しよう！');return;}
+  if(idx===lvlCharPos){enterLevel(idx);return;}
+  lvlWalking=true;
+  const char=document.getElementById('level-char');
+  char.classList.remove('idle');char.classList.add('walking');
+  const dir=idx>lvlCharPos?1:-1;
+  while(lvlCharPos!==idx){
+    lvlCharPos+=dir;
+    posLevelChar(lvlCharPos,true);
+    await new Promise(r=>setTimeout(r,200));
+  }
+  char.classList.remove('walking');char.classList.add('idle');
+  lvlWalking=false;
+  renderLevelMap();
+  renderLevelCard(lvlCharPos);
+}
+
+function renderLevelCard(idx){
+  const lv=LEVELS[idx];
+  const info=LEVEL_INFO[lv];
+  const lc=LC[lv];
+  const unlocked=lvlUnlocked(idx);
+  const stages=lvlStages(lv);
+  const done=stages.filter(s=>prog.c.includes(s.id)).length;
+  const card=document.getElementById('level-info-card');
+  if(!unlocked){
+    const prevLv=LEVELS[idx-1];
+    card.innerHTML=`<div class="info-card">
+      <div class="ic-header"><span class="ic-emoji">🔒</span><div><div class="ic-title">${lv} ${info.name}</div><div class="ic-sub">${info.desc}</div></div></div>
+      <div class="ic-locked">🔒 ${prevLv}レベルをクリアして解放</div>
+    </div>`;
+    return;
+  }
+  const dots=stages.map(s=>{
+    const st=stgStatus(s.id);
+    const col=st==='done'?lc:st==='unlocked'?lc+'60':'#1e2d4a';
+    return`<div class="ic-stage-dot" style="border-color:${col};color:${st==='done'?lc:'var(--txt3)'};background:${st==='done'?lc+'18':'transparent'}">${st==='done'?'✓':s.id}</div>`;
+  }).join('');
+  card.innerHTML=`<div class="info-card" style="border-color:${lc}40">
+    <div class="ic-header">
+      <span class="ic-emoji">${info.emoji}</span>
+      <div><div class="ic-title" style="color:${lc}">${lv} ${info.name}</div><div class="ic-sub">${info.desc}</div></div>
+      <span class="lb" style="background:${lc}20;border-color:${lc}60;color:${lc};margin-left:auto">${done}/5クリア</span>
+    </div>
+    <div class="ic-progress">${dots}</div>
+    <button class="ic-play-btn" onclick="enterLevel(${idx})">▶ このレベルへ進む</button>
+  </div>`;
+}
+
+function enterLevel(idx){
+  selectedLevel=LEVELS[idx];
+  showScreen('stage-screen');
+  initStageScreen();
+}
+
+// ── STAGE SELECT ──
+function initStageScreen(){
+  const lv=selectedLevel;
+  const lc=LC[lv];
+  const info=LEVEL_INFO[lv];
+  const stages=lvlStages(lv);
+  // ステージcharPosを最後のアンロック済みに初期化
+  const lastUnlocked=stages.filter(s=>s.id<=prog.u);
+  stgCharPos=lastUnlocked.length>0?lastUnlocked.length-1:0;
+  document.getElementById('ss-level-badge').innerHTML=`<span class="lb" style="background:${lc}20;border-color:${lc}60;color:${lc}">${lv}</span>`;
+  document.getElementById('ss-title').textContent=`${info.emoji} ${lv} ${info.name}`;
+  renderStageMap();
+  updateBGMBtns();
+}
+
+function renderStageMap(){
+  const lv=selectedLevel;
+  const lc=LC[lv];
+  const stages=lvlStages(lv);
+  const path=document.getElementById('stage-path');
+  path.innerHTML='';
+  stages.forEach((sc,idx)=>{
+    const st=stgStatus(sc.id);
+    const isCur=idx===stgCharPos;
+    const locked=st==='locked';
+    const done=st==='done';
+    const node=document.createElement('button');
+    node.className='snode'+(locked?' locked':isCur?' current':'');
+    node.style.borderColor=done?'#d4a017':isCur?lc:locked?'#1e2d4a':lc+'60';
+    node.style.color=done?'#d4a017':isCur?lc:locked?'#2d3748':lc;
+    node.style.background=done?'#d4a01712':isCur?lc+'18':'var(--bg2)';
+    node.disabled=locked;
+    node.innerHTML=`<span class="sn-emoji">${done?'✓':locked?'🔒':sc.emoji}</span><span class="sn-num">S${sc.id}</span>`;
+    node.onclick=()=>clickStage(idx);
+    path.appendChild(node);
+    if(idx<4){const line=document.createElement('div');line.style.cssText='flex:1;height:3px;background:var(--bdr2);border-radius:2px';path.appendChild(line);}
+  });
+  posStageChar(stgCharPos,false);
+  renderStageCard(stgCharPos);
+}
+
+function posStageChar(idx,anim){
+  const char=document.getElementById('stage-char');
+  const nodes=document.querySelectorAll('#stage-path .snode');
+  if(!nodes[idx])return;
+  const area=document.getElementById('stage-walk');
+  const ar=area.getBoundingClientRect(),nr=nodes[idx].getBoundingClientRect();
+  const left=nr.left-ar.left+nr.width/2-11;
+  char.style.left=left+'px';
+  if(!anim){char.style.transition='none';requestAnimationFrame(()=>{requestAnimationFrame(()=>{char.style.transition='left .2s ease-out';});});}
+}
+
+async function clickStage(idx){
+  if(stgWalking)return;
+  const stages=lvlStages(selectedLevel);
+  if(stgStatus(stages[idx].id)==='locked'){showToast('🔒 まだ解放されていません');return;}
+  if(idx===stgCharPos){showStageCard(idx);return;}
+  stgWalking=true;
+  const char=document.getElementById('stage-char');
+  char.classList.remove('idle');char.classList.add('walking');
+  const dir=idx>stgCharPos?1:-1;
+  while(stgCharPos!==idx){
+    stgCharPos+=dir;
+    posStageChar(stgCharPos,true);
+    await new Promise(r=>setTimeout(r,180));
+  }
+  char.classList.remove('walking');char.classList.add('idle');
+  stgWalking=false;
+  renderStageMap();
+}
+
+function showStageCard(idx){renderStageCard(idx);}
+
+function renderStageCard(idx){
+  const stages=lvlStages(selectedLevel);
+  const sc=stages[idx];
+  const st=stgStatus(sc.id);
+  const lc=LC[sc.level];
+  const done=st==='done';
+  const card=document.getElementById('stage-info-card');
+  card.innerHTML=`<div class="stage-info-card" style="border-color:${lc}40">
+    <div class="sic-header">
+      <span class="sic-emoji">${sc.emoji}</span>
+      <div>
+        <div class="sic-title">S${sc.id} ${sc.name}</div>
+        <div class="sic-goal">目標: ${sc.cw}語見つけよう</div>
+      </div>
+      ${done?'<span style="color:#d4a017;font-size:20px;margin-left:auto">✓</span>':''}
+    </div>
+    <div class="sic-status">
+      ${done?`<span style="font-size:11px;color:var(--grn)">✓ クリア済み</span>`:''}
+    </div>
+    <button class="sic-play" onclick="beginStage(${sc.id})">${done?'▶ もう一度':'▶ プレイ'}</button>
+  </div>`;
+  // nav arrows
+  document.getElementById('snav-prev').disabled=idx<=0;
+  document.getElementById('snav-next').disabled=idx>=4||stgStatus(stages[Math.min(idx+1,4)].id)==='locked';
+}
+
+function stageMove(dir){
+  const stages=lvlStages(selectedLevel);
+  const next=stgCharPos+dir;
+  if(next<0||next>4)return;
+  if(stgStatus(stages[next].id)==='locked')return;
+  clickStage(next);
+}
+
+function showLevelSelect(){
+  showScreen('level-screen');
+  initLevelScreen();
+}
+
+function backToStageSelect(){
+  document.getElementById('cmod').classList.remove('open');
+  showScreen('stage-screen');
+  initStageScreen();
+}
+
+// ════════════════════════════════════════════
+// GRID GENERATION
+// ════════════════════════════════════════════
 function buildGrid(stage){
   const p=pool(stage.level);
   const wlist=cumWL(stage.level).filter(e=>e.w.split('').every(k=>p.includes(k)));
@@ -476,205 +859,53 @@ function buildGrid(stage){
   return{grid:g,words:placed};
 }
 
-// ─── VALIDATION ───
-// 判定順: ① グリッド配置語（submit()内） → ② Wiktionary → ③ Jisho
-//
-// なぜWiktionary？
-//   - CORS完全対応（origin=* で file:// からも動く）
-//   - 日本語の語彙をほぼ網羅（手動登録不要）
-//   - 無料・APIキー不要・永久無料
-//
-// Jishoは読み・意味の取得のみ使用（バリデーションには使わない）
-
+// ════════════════════════════════════════════
+// VALIDATION (Wiktionary + Jisho)
+// ════════════════════════════════════════════
 async function validate(word){
-  // Wiktionary で語の存在確認（メイン判定）
   try{
-    const ctrl=new AbortController();
-    const tid=setTimeout(()=>ctrl.abort(),5000);
-    const res=await fetch(
-      `https://ja.wiktionary.org/w/api.php?action=query&prop=info&titles=${encodeURIComponent(word)}&format=json&origin=*`,
-      {signal:ctrl.signal}
-    );
-    clearTimeout(tid);
+    const res=await fetch(`https://ja.wiktionary.org/w/api.php?action=query&prop=info&titles=${encodeURIComponent(word)}&format=json&origin=*`);
     const data=await res.json();
-    const pages=data.query?.pages||{};
-    const page=Object.values(pages)[0];
-    const exists=page&&page.pageid&&page.pageid>0;
-
-    if(exists){
-      // 語が存在 → Jishoで読み・意味を取得（ベストエフォート）
+    const page=Object.values(data.query?.pages||{})[0];
+    if(page?.pageid>0){
       const detail=await getJishoDetail(word);
       return{valid:true,reading:detail?.reading||'',meaning:detail?.meaning||''};
     }
-    // Wiktionaryにページなし → Jishoでも確認（2重チェック）
     const jisho=await getJishoDetail(word);
-    if(jisho?.found){return{valid:true,reading:jisho.reading,meaning:jisho.meaning};}
+    if(jisho?.found)return{valid:true,reading:jisho.reading,meaning:jisho.meaning};
     return{valid:false};
   }catch(e){
-    // Wiktionary失敗 → Jishoにフォールバック
     const jisho=await getJishoDetail(word);
-    if(jisho?.found){return{valid:true,reading:jisho.reading,meaning:jisho.meaning};}
+    if(jisho?.found)return{valid:true,reading:jisho.reading,meaning:jisho.meaning};
     return{valid:false};
   }
 }
-
-// Jisho から読み・意味を取得（バリデーションには使わない）
 async function getJishoDetail(word){
   try{
     const res=await fetch(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(word)}`);
     if(!res.ok)return null;
     const data=await res.json();
-    const results=data.data||[];
-    let match=results.find(r=>r.japanese?.some(j=>j.word===word));
-    if(!match)match=results.find(r=>r.slug===word);
-    if(!match&&results[0]?.japanese?.[0]?.word===word)match=results[0];
-    if(match){
-      const jap=match.japanese?.find(j=>j.word===word)||match.japanese?.[0];
-      const meaning=match.senses?.[0]?.english_definitions?.slice(0,2).join(', ')||'';
-      return{found:true,reading:jap?.reading||'',meaning};
-    }
-    return null;
+    const match=(data.data||[]).find(r=>r.japanese?.some(j=>j.word===word))||(data.data||[])[0];
+    if(!match)return null;
+    const jap=match.japanese?.find(j=>j.word===word)||match.japanese?.[0];
+    return{found:true,reading:jap?.reading||'',meaning:match.senses?.[0]?.english_definitions?.slice(0,2).join(', ')||''};
   }catch(e){return null;}
 }
 
-// ─── MAP ───
-function renderMap(){
-  document.getElementById('legend').innerHTML=Object.entries(LC).map(([lv,col])=>`<span class="lb" style="background:${col}20;border-color:${col}60;color:${col}">${lv}</span>`).join('');
-  const el=document.getElementById('smap');let h='';
-  MAP_ROWS.forEach((row,ri)=>{
-    h+=`<div class="map-row">`;
-    row.forEach((sid,ci)=>{
-      const sc=STAGES.find(s=>s.id===sid),st=sst(sid),lc=LC[sc.level];
-      const isDone=st==='done',isCur=st==='cur',isLk=st==='locked';
-      h+=`<button class="snode${isCur?' cur':''}" ${isLk?'disabled':''} ${!isLk?`onclick="clickMapStage(${sid})"`:''}
-        data-sid="${sid}"
-        style="border-color:${isDone?'#d4a017':isCur?lc:isLk?'#1e2d4a':lc+'50'};background:${isDone?'#d4a01712':isCur?lc+'18':'transparent'};color:${isDone?'#d4a017':isCur?lc:isLk?'#2d3748':lc};box-shadow:${isCur?`0 0 14px ${lc}40`:'none'}"
-        title="S${sid}: ${sc.name}"><span class="se">${isDone?'✓':isLk?'🔒':sc.emoji}</span><span class="si">S${sid}</span></button>`;
-      if(ci<row.length-1)h+=`<div class="h-line"></div>`;
-    });
-    h+=`</div>`;
-    if(ri<MAP_ROWS.length-1){const isRev=ri%2===1;h+=`<div class="v-wrap" style="${isRev?'justify-content:flex-start;padding-left:25px':'justify-content:flex-end;padding-right:25px'}"><div class="v-line"></div></div>`;}
-  });
-  el.innerHTML=h;
-  const done=prog.c.length;
-  document.getElementById('sdone').textContent=`${done} / 25`;
-  document.getElementById('sbar').style.width=`${(done/25)*100}%`;
-  mapChar=Math.min(mapChar,prog.u);
-  setTimeout(()=>{positionChar(mapChar,false);showMapPopup(mapChar);},100);
-  updateBGMBtn();
-  // nav arrows 更新
-  setTimeout(()=>{
-    document.getElementById('nav-prev').disabled=mapChar<=1;
-    document.getElementById('nav-next').disabled=mapChar>=prog.u;
-  },150);
-}
-let mapChar=1; // キャラの現在位置
-let mapWalking=false;
-
-function positionChar(sid,animate){
-  const char=document.getElementById('mchar');if(!char)return;
-  const btn=document.querySelector(`[data-sid="${sid}"]`);if(!btn)return;
-  const map=document.getElementById('smap');if(!map)return;
-  const mr=map.getBoundingClientRect(),br=btn.getBoundingClientRect();
-  const left=br.left-mr.left+br.width/2-11;
-  const top=br.top-mr.top-28;
-  if(!animate){
-    char.style.transition='none';
-    requestAnimationFrame(()=>{
-      char.style.left=left+'px';char.style.top=top+'px';
-      requestAnimationFrame(()=>{char.style.transition='left .22s ease-out,top .22s ease-out';});
-    });
-  }else{char.style.left=left+'px';char.style.top=top+'px';}
-}
-
-function showMapPopup(sid){
+// ════════════════════════════════════════════
+// GAME
+// ════════════════════════════════════════════
+async function beginStage(sid){
   const sc=STAGES.find(s=>s.id===sid);if(!sc)return;
-  const popup=document.getElementById('map-popup');
-  const btn=document.querySelector(`[data-sid="${sid}"]`);
-  if(!btn||!popup)return;
-  const map=document.getElementById('smap');
-  const mr=map.getBoundingClientRect(),br=btn.getBoundingClientRect();
-  const left=br.left-mr.left+br.width/2;
-  const top=br.top-mr.top-12;
-  const pw=140;
-  popup.style.left=Math.max(4,Math.min(left-pw/2,mr.width-pw-4))+'px';
-  popup.style.top=Math.max(0,top-popup.offsetHeight-16)+'px';
-  document.getElementById('popup-sid').textContent=`S${sid} · ${sc.level}`;
-  document.getElementById('popup-name').textContent=`${sc.emoji} ${sc.name}`;
-  document.getElementById('popup-goal').textContent=`目標: ${sc.cw}語見つけよう`;
-  const isDone=prog.c.includes(sid);
-  document.getElementById('popup-done').innerHTML=isDone?'<span class="popup-done">✓ クリア済み</span>':'';
-  document.getElementById('popup-play-btn').textContent=isDone?'▶ もう一度':'▶ プレイ';
-  popup.style.display='block';
-  // nav arrows
-  document.getElementById('nav-prev').disabled=mapChar<=1;
-  document.getElementById('nav-next').disabled=mapChar>=prog.u;
-}
-
-function hideMapPopup(){document.getElementById('map-popup').style.display='none';}
-
-async function clickMapStage(sid){
-  if(mapWalking)return;
-  if(sid>prog.u){showToast('🔒 まだ解放されていません');return;}
-  if(sid===mapChar){showMapPopup(sid);return;}
-  hideMapPopup();
-  mapWalking=true;
-  const char=document.getElementById('mchar');
-  char.classList.remove('char-idle');
-  char.classList.add('char-walk');
-  const dir=sid>mapChar?1:-1;
-  // キャラを1ステップずつ移動
-  while(mapChar!==sid){
-    mapChar+=dir;
-    if(mapChar<1||mapChar>25)break;
-    positionChar(mapChar,true);
-    await new Promise(r=>setTimeout(r,180));
-  }
-  char.classList.remove('char-walk');
-  char.classList.add('char-idle');
-  mapWalking=false;
-  // 到着後ポップアップ表示（少し待つ）
-  await new Promise(r=>setTimeout(r,120));
-  showMapPopup(mapChar);
-}
-
-function mapMove(dir){
-  const next=mapChar+dir;
-  if(next<1||next>prog.u)return;
-  clickMapStage(next);
-}
-
-function playCurrentMapStage(){
-  hideMapPopup();
-  beginStage(mapChar);
-}
-
-// キーボード操作
-document.addEventListener('keydown',e=>{
-  if(document.getElementById('map-screen').style.display==='none')return;
-  if(document.getElementById('map-popup').style.display!=='none'&&e.key==='Enter'){
-    e.preventDefault();playCurrentMapStage();return;
-  }
-  if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();mapMove(1);}
-  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();mapMove(-1);}
-  else if(e.key==='Enter'||e.key===' '){e.preventDefault();showMapPopup(mapChar);}
-});
-function resetProg(){if(!confirm('本当にリセットしますか？'))return;prog={u:1,c:[]};saveP();renderMap();}
-
-// ─── STAGE ───
-function beginStage(sid){
-  const sc=STAGES.find(s=>s.id===sid);if(!sc)return;
-  cStage=sc;fWords=[];kWords=[];totW=0;sel=[];selDir=null;isDrag=false;givenUp=false;hLeft=3;
-  document.getElementById('map-screen').style.display='none';
-  document.getElementById('game-screen').style.display='block';
-  document.getElementById('cmod').classList.remove('open');
+  cStage=sc;G=null;kWords=[];fWords=[];totW=0;sel=[];selDir=null;isDrag=false;givenUp=false;hLeft=3;
+  showScreen('game-screen');
   const lc=LC[sc.level];
   document.getElementById('shdr').innerHTML=`<span style="font-size:15px">${sc.emoji}</span><span style="font-weight:700;font-size:14px">S${sc.id} ${sc.name}</span><span class="lb" style="background:${lc}20;border-color:${lc}60;color:${lc};font-size:9px">${sc.level}</span>`;
-  document.getElementById('sgoal').textContent=`目標: ${sc.cw}語見つけよう`;
+  document.getElementById('sgoal').textContent=`3語以上で終了可能（目標: ${sc.cw}語）`;
   document.getElementById('pf').textContent='0';document.getElementById('pt').textContent='?';document.getElementById('pc').textContent='';
   document.getElementById('pfill').style.width='0%';document.getElementById('pfill').style.background=`linear-gradient(90deg,${lc},var(--grn))`;
   document.getElementById('fwrap').style.display='none';document.getElementById('fwchips').innerHTML='';document.getElementById('fbkarea').innerHTML='';
-  document.getElementById('hleft').textContent=`(${hLeft}回)`;document.getElementById('hbtn').disabled=false;document.getElementById('gubtn').disabled=false;
+  document.getElementById('hleft').textContent=`(${hLeft}回)`;document.getElementById('hbtn').disabled=false;document.getElementById('gubtn').disabled=false;document.getElementById('finbtn').disabled=true;document.getElementById('finbtn').className='ab finb';document.getElementById('clear-banner').style.display='none';
   setWD('hint','漢字を直線でなぞって単語を作ろう');
   document.getElementById('grid-area').innerHTML=`<div class="gload"><div class="bspin" style="border-color:${lc}"></div><div style="color:var(--txt3);font-size:12px">グリッドを生成中...</div></div>`;
   setTimeout(()=>{
@@ -686,7 +917,6 @@ function beginStage(sid){
 }
 function retryStage(){if(cStage)beginStage(cStage.id);}
 
-// ─── GRID RENDER ───
 function renderGrid(){
   const el=document.createElement('div');el.id='kg';
   for(let r=0;r<5;r++)for(let c=0;c<5;c++){
@@ -732,39 +962,40 @@ function setWD(type,text){
 }
 function updWD(){if(!G||!sel.length){setWD('hint','漢字を直線でなぞって単語を作ろう');return;}const w=sel.map(({r,c})=>G[r][c]).join('');const lc=LC[cStage?.level]||'var(--vio)';document.getElementById('wd').classList.add('act');document.getElementById('wd').innerHTML=`<span style="color:${lc};font-size:20px;font-weight:700;letter-spacing:4px">${w}</span>`;}
 
-// ─── SUBMIT ───
 async function submit(){
   const s=[...sel];sel=[];selDir=null;ref();
   if(s.length<2||!G||isVal){setWD('hint','漢字を直線でなぞって単語を作ろう');return;}
   const word=s.map(({r,c})=>G[r][c]).join('').trim();
   if(!word||word.length<2){setWD('hint','漢字を直線でなぞって単語を作ろう');return;}
   if(fWords.some(w=>w.word===word)){showFbk('err',word,null,'すでに見つけています！');setWD('hint','漢字を直線でなぞって単語を作ろう');return;}
-  // ① グリッド内の既知語
   const known=kWords.find(w=>w.word===word);
   if(known){accept({word,reading:known.reading,meaning:known.meaning,cells:s});return;}
   setWD('load',`「${word}」を確認中...`);isVal=true;
-  // ② DICT + Jisho (validate関数内で順番に確認)
   const v=await validate(word);
   isVal=false;
-  if(v.valid){accept({word,reading:v.reading,meaning:v.meaning,cells:s});}
-  else{
-    const msg=v.src==='error'?'オフラインのため確認できませんでした':'単語として認識されませんでした';
-    playSFX('ng');showFbk('err',word,null,msg);setWD('hint','漢字を直線でなぞって単語を作ろう');
-  }
+  if(v.valid)accept({word,reading:v.reading,meaning:v.meaning,cells:s});
+  else{sfx('ng');showFbk('err',word,null,'単語として認識されませんでした');setWD('hint','漢字を直線でなぞって単語を作ろう');}
 }
 function accept(wd){
-  fWords.push(wd);ref();playSFX('ok');showFbk('ok',wd.word,wd.reading,wd.meaning);setWD('hint','漢字を直線でなぞって単語を作ろう');
+  fWords.push(wd);ref();sfx('ok');showFbk('ok',wd.word,wd.reading,wd.meaning);setWD('hint','漢字を直線でなぞって単語を作ろう');
   updProg();addChip(wd);
-  if(fWords.filter(w=>!w.gu).length>=cStage.cw&&!givenUp){
-    prog={u:Math.max(prog.u,cStage.id+1),c:[...new Set([...prog.c,cStage.id])]};saveP();
-    setTimeout(()=>showComplete(false),700);
-  }
+  updateFinBtn();
 }
 function updProg(){
   const found=fWords.length,total=Math.max(totW,found);
   document.getElementById('pfill').style.width=`${total>0?Math.min((found/total)*100,100):0}%`;
   document.getElementById('pf').textContent=found;document.getElementById('pt').textContent=total>0?total:'?';
   document.getElementById('pc').textContent=`目標:${cStage?.cw}語`;
+  updateFinBtn();
+}
+function updateFinBtn(){
+  const selfound=fWords.filter(w=>!w.gu).length;
+  const btn=document.getElementById('finbtn');if(!btn)return;
+  const MIN=3;
+  btn.disabled=selfound<MIN;
+  btn.className='ab finb'+(selfound>=cStage.cw?' goal':selfound>=MIN?' can':'');
+  if(selfound===MIN&&MIN<cStage.cw)showToast(`💡 ${MIN}語達成！終了ボタンが使えます`);
+  if(selfound===cStage.cw)showToast(`🎯 目標達成！いつでも終了できます`);
 }
 function addChip(wd){
   const wrap=document.getElementById('fwchips');const chip=document.createElement('div');
@@ -779,8 +1010,6 @@ function showFbk(type,word,reading,msg){
   else el.innerHTML=`<div class="fbk ferr"><span class="fe">✗ <strong>${word}</strong> — ${msg}</span></div>`;
   fbkTimer=setTimeout(()=>{el.innerHTML='';},3500);
 }
-
-// ─── HINT / GIVEUP ───
 function doHint(){
   if(hLeft<=0||isVal)return;
   const unfound=kWords.filter(w=>!fWords.some(f=>f.word===w.word));
@@ -796,6 +1025,12 @@ function doHint(){
   if(hTimer)clearTimeout(hTimer);
   hTimer=setTimeout(()=>{cells.forEach(({r,c})=>{document.getElementById('kg')?.querySelector(`[data-r="${r}"][data-c="${c}"]`)?.classList.remove('hc');});ref();},3000);
 }
+function doFinish(){
+  const selfound=fWords.filter(w=>!w.gu).length;
+  if(selfound<3){showToast('あと'+(3-selfound)+'語見つけてから終了できます');return;}
+  prog={u:Math.max(prog.u,cStage.id+1),c:[...new Set([...prog.c,cStage.id])]};saveP();
+  showComplete(false);
+}
 function doGiveUp(){
   if(givenUp)return;if(!confirm('ギブアップしますか？残りの言葉が表示されます。'))return;
   givenUp=true;document.getElementById('gubtn').disabled=true;
@@ -803,19 +1038,19 @@ function doGiveUp(){
     const cells=findCells(w.word)||[];fWords.push({...w,cells,gu:true});addChip({...w,cells,gu:true});
   });
   ref();updProg();prog={u:Math.max(prog.u,cStage.id+1),c:[...new Set([...prog.c,cStage.id])]};saveP();
-  setTimeout(()=>showComplete(true),600);
+  setTimeout(()=>showComplete(true),500);
 }
 
-// ─── COMPLETE ───
+// ── COMPLETE MODAL ──
 function showComplete(isGU){
+  sfx('clear');
   document.getElementById('cemi').textContent=isGU?'🏳':'🎉';
   document.getElementById('ctitle').textContent=isGU?'ギブアップ…':'ステージクリア！';
   document.getElementById('ctitle').style.color=isGU?'var(--red)':'var(--viol)';
-  const selfound=fWords.filter(w=>!w.gu);
-  document.getElementById('csub').textContent=`S${cStage.id} ${cStage.name} — 自力で${selfound.length}語発見`;
+  const selfound=fWords.filter(w=>!w.gu).length;
+  document.getElementById('csub').textContent=`S${cStage.id} ${cStage.name} — 自力で${selfound}語発見`;
   document.getElementById('cword-count').textContent=`見つけた言葉（${fWords.length}語）`;
   const vocab=getVoc();
-  // 見つけた言葉
   document.getElementById('cchips').innerHTML=fWords.map(w=>{
     const saved=vocab.some(v=>v.word===w.word);
     return`<div class="cword-row${w.gu?' g':''}" onclick="openWMFromComplete('${w.word}')">
@@ -823,90 +1058,49 @@ function showComplete(isGU){
       <button class="csavebtn${saved?' saved':''}" onclick="event.stopPropagation();saveFromComplete('${w.word}',this)">${saved?'✓':'💾'}</button>
     </div>`;
   }).join('');
-  // 見つけられなかった言葉
   const missed=kWords.filter(w=>!fWords.some(f=>f.word===w.word));
-  const missedEl=document.getElementById('cmissed');
+  const mEl=document.getElementById('cmissed');
   if(missed.length>0){
-    missedEl.style.display='block';
+    mEl.style.display='block';
     document.getElementById('cmissed-list').innerHTML=missed.map(w=>
-      `<div class="cword-row missed" onclick="openWMFromComplete('${w.word}')">
-        <span class="cwrd" style="color:var(--txt2)">${w.word}</span>
-        <span class="crdr">${w.reading||''}</span>
-        <span class="crdr" style="margin-left:auto;color:var(--txt3);font-size:9px">${w.meaning||''}</span>
-      </div>`
+      `<div class="cword-row missed" onclick="openWMFromComplete('${w.word}')"><span class="cwrd">${w.word}</span><span class="crdr">${w.reading||''}</span><span style="margin-left:auto;font-size:9px;color:var(--txt3)">${w.meaning||''}</span></div>`
     ).join('');
-  }else{
-    missedEl.style.display='none';
-    if(selfound.length===kWords.length&&kWords.length>0){
-      document.getElementById('ctitle').textContent='🌟 パーフェクト！';
-    }
-  }
+  }else{mEl.style.display='none';}
+  const hasNext=cStage.id<25&&lvlStages(selectedLevel).some(s=>s.id===cStage.id+1)||STAGES.find(s=>s.id===cStage.id+1);
   document.getElementById('cnxt').style.display=cStage.id<25?'':'none';
   document.getElementById('cmod').classList.add('open');
-  if(!isGU)playSFX('clear');
 }
-function openWMFromComplete(word){
-  const wd=fWords.find(w=>w.word===word);if(wd)openWM(wd);
+function goNext(){
+  document.getElementById('cmod').classList.remove('open');
+  const next=STAGES.find(s=>s.id===cStage.id+1);
+  if(next){
+    // 同レベルか次のレベルか
+    if(next.level===selectedLevel){beginStage(next.id);}
+    else{selectedLevel=next.level;beginStage(next.id);}
+  }else{backToStageSelect();}
 }
-function saveFromComplete(word,btn){
-  const wd=fWords.find(w=>w.word===word);if(!wd)return;
-  saveVoc(wd);
-  btn.textContent='✓';btn.classList.add('saved');
-}
+function openWMFromComplete(word){const wd=fWords.find(w=>w.word===word)||kWords.find(w=>w.word===word);if(wd)openWM({...wd});}
+function saveFromComplete(word,btn){const wd=[...fWords,...kWords].find(w=>w.word===word);if(!wd)return;saveVoc(wd,true);btn.textContent='✓';btn.classList.add('saved');}
 function saveAllFound(){
   const vocab=getVoc();let cnt=0;
-  fWords.forEach(w=>{
-    if(!vocab.some(v=>v.word===w.word)){
-      vocab.unshift({word:w.word,reading:w.reading||'',meaning:w.meaning||'',level:cStage?.level||'N5',savedAt:Date.now()});
-      cnt++;
-    }
-  });
-  setVoc(vocab);
-  showToast(cnt>0?`💾 ${cnt}語を単語帳に保存しました`:'すでに全語が保存済みです');
-  // Update save buttons
-  document.querySelectorAll('.csavebtn').forEach(btn=>{btn.textContent='✓';btn.classList.add('saved');});
+  fWords.forEach(w=>{if(!vocab.some(v=>v.word===w.word)){vocab.unshift({word:w.word,reading:w.reading||'',meaning:w.meaning||'',level:cStage?.level||'N5',savedAt:Date.now()});cnt++;}});
+  setVoc(vocab);showToast(cnt>0?`💾 ${cnt}語を保存しました`:'すでに全語保存済みです');
+  document.querySelectorAll('.csavebtn').forEach(b=>{b.textContent='✓';b.classList.add('saved');});
 }
-function openVocFromComplete(){
-  document.getElementById('cmod').classList.remove('open');
-  openVoc();
-}
-function goNext(){document.getElementById('cmod').classList.remove('open');const n=STAGES.find(s=>s.id===cStage.id+1);if(n)beginStage(n.id);else showMap();}
+function openVocFromComplete(){document.getElementById('cmod').classList.remove('open');openVoc();}
 
-// ─── WORD MODAL ───
-const POS_JA={'Noun':'名詞','Suru verb':'する動詞','Godan verb':'五段動詞','Ichidan verb':'一段動詞','Verb':'動詞','Na-adjective':'な形容詞','I-adjective':'い形容詞','Adjective':'形容詞','Adverb':'副詞','Expression':'表現・慣用句','Counter':'助数詞','Suffix':'接尾語','Prefix':'接頭語','Conjunction':'接続詞','Interjection':'感動詞','Pronoun':'代名詞','Numeric':'数詞'};
+// ════════════════════════════════════════════
+// WORD MODAL
+// ════════════════════════════════════════════
+const POS_JA={'Noun':'名詞','Suru verb':'する動詞','Godan verb':'五段動詞','Ichidan verb':'一段動詞','Verb':'動詞','Na-adjective':'な形容詞','I-adjective':'い形容詞','Adjective':'形容詞','Adverb':'副詞','Expression':'表現','Counter':'助数詞','Suffix':'接尾語','Prefix':'接頭語','Conjunction':'接続詞','Interjection':'感動詞','Pronoun':'代名詞','Numeric':'数詞'};
 function posJa(pos){if(!pos)return'';for(const[en,ja]of Object.entries(POS_JA)){if(pos.toLowerCase().includes(en.toLowerCase()))return ja;}return pos;}
-
 async function fetchWordFull(word){
-  try{
-    const res=await fetch(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(word)}`);
-    if(!res.ok)return null;
-    const data=await res.json();
-    const result=(data.data||[]).find(r=>r.japanese?.some(j=>j.word===word))||data.data?.[0];
-    if(!result)return null;
-    const jap=result.japanese?.find(j=>j.word===word)||result.japanese?.[0];
-    return{
-      reading:jap?.reading||'',
-      jlpt:result.jlpt?.[0]?.replace('jlpt-','').toUpperCase()||'',
-      isCommon:result.is_common||false,
-      senses:(result.senses||[]).slice(0,4).map(s=>({
-        meanings:s.english_definitions?.join('; ')||'',
-        pos:s.parts_of_speech?.[0]||'',
-        info:s.info?.join(', ')||'',
-      })),
-    };
+  try{const res=await fetch(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(word)}`);if(!res.ok)return null;const data=await res.json();const result=(data.data||[]).find(r=>r.japanese?.some(j=>j.word===word))||data.data?.[0];if(!result)return null;const jap=result.japanese?.find(j=>j.word===word)||result.japanese?.[0];return{reading:jap?.reading||'',jlpt:result.jlpt?.[0]?.replace('jlpt-','').toUpperCase()||'',isCommon:result.is_common||false,senses:(result.senses||[]).slice(0,4).map(s=>({meanings:s.english_definitions?.join('; ')||'',pos:s.parts_of_speech?.[0]||'',info:s.info?.join(', ')||''}))};
   }catch(e){return null;}
 }
-
 async function fetchExamples(word){
-  try{
-    const res=await fetch(`https://tatoeba.org/en/api_v0/search?from=jpn&query=${encodeURIComponent(word)}&to=eng&limit=8`);
-    if(!res.ok)return null;
-    const data=await res.json();
-    const filtered=(data.results||[]).filter(r=>r.text.includes(word)&&r.text.length<60);
-    return filtered.slice(0,3).map(r=>({ja:r.text,en:r.translations?.[0]?.[0]?.text||''}));
-  }catch(e){return null;}
+  try{const res=await fetch(`https://tatoeba.org/en/api_v0/search?from=jpn&query=${encodeURIComponent(word)}&to=eng&limit=8`);if(!res.ok)return null;const data=await res.json();const filtered=(data.results||[]).filter(r=>r.text.includes(word)&&r.text.length<60);return filtered.slice(0,3).map(r=>({ja:r.text,en:r.translations?.[0]?.[0]?.text||''}));}catch(e){return null;}
 }
-
 async function openWM(wd){
   curW=wd;
   document.getElementById('wmw').textContent=wd.word;
@@ -916,64 +1110,40 @@ async function openWM(wd){
   document.getElementById('wmexs').innerHTML=`<div class="ldg"><span class="sp"></span>例文を検索中...</div>`;
   document.getElementById('wmextlinks').innerHTML='';
   document.getElementById('wmod').classList.add('open');
-
   const[details,examples]=await Promise.all([fetchWordFull(wd.word),fetchExamples(wd.word)]);
-
-  // 読み（より正確なものがあれば更新）
   if(details?.reading&&!wd.reading)document.getElementById('wmr').textContent=details.reading;
-
-  // バッジ
   let badges='';
   if(details?.jlpt)badges+=`<span class="badge jlpt">${details.jlpt}</span>`;
   if(details?.isCommon)badges+=`<span class="badge common">よく使う語</span>`;
   document.getElementById('wmbadges').innerHTML=badges;
-
-  // 意味・品詞
-  if(details?.senses?.length){
-    document.getElementById('wmsenses').innerHTML=details.senses.map(s=>`
-      <div class="sense">
-        ${s.pos?`<span class="pos">${posJa(s.pos)}</span>`:''}
-        <span class="meaning">${s.meanings}</span>
-        ${s.info?`<span class="sinfo">(${s.info})</span>`:''}
-      </div>`).join('');
-  }else{
-    document.getElementById('wmsenses').innerHTML=wd.meaning
-      ?`<div class="sense"><span class="meaning">${wd.meaning}</span></div>`
-      :`<div class="no-data">オンライン接続時に表示されます</div>`;
-  }
-
-  // 例文
-  if(examples?.length){
-    document.getElementById('wmexs').innerHTML=examples.map(e=>`
-      <div class="example">
-        <div class="ex-ja">${e.ja.replace(wd.word,`<mark>${wd.word}</mark>`)}</div>
-        ${e.en?`<div class="ex-en">${e.en}</div>`:''}
-      </div>`).join('');
-  }else{
-    document.getElementById('wmexs').innerHTML=
-      `<a class="ex-link" href="https://jisho.org/search/${encodeURIComponent(wd.word)}%23sentences" target="_blank" rel="noopener">Jisho.orgで例文を見る →</a>`;
-  }
-
-  // 外部リンク
-  document.getElementById('wmextlinks').innerHTML=`
-    <a class="extlink" href="https://jisho.org/search/${encodeURIComponent(wd.word)}" target="_blank" rel="noopener">🔗 Jisho</a>
-    <a class="extlink" href="https://tatoeba.org/ja/sentences/search?from=jpn&to=eng&query=${encodeURIComponent(wd.word)}" target="_blank" rel="noopener">📚 Tatoeba例文</a>
-    <a class="extlink" href="https://dictionary.goo.ne.jp/word/${encodeURIComponent(wd.word)}/" target="_blank" rel="noopener">📘 goo辞書</a>`;
+  if(details?.senses?.length){document.getElementById('wmsenses').innerHTML=details.senses.map(s=>`<div class="sense">${s.pos?`<span class="pos">${posJa(s.pos)}</span>`:''}<span class="meaning">${s.meanings}</span>${s.info?`<span style="font-size:10px;color:var(--txt3);margin-left:4px;font-style:italic">(${s.info})</span>`:''}</div>`).join('');}
+  else{document.getElementById('wmsenses').innerHTML=wd.meaning?`<div class="sense"><span class="meaning">${wd.meaning}</span></div>`:`<div class="ldg">意味を取得できませんでした</div>`;}
+  if(examples?.length){document.getElementById('wmexs').innerHTML=examples.map(e=>`<div class="example"><div class="ex-ja">${e.ja.replace(wd.word,`<mark>${wd.word}</mark>`)}</div>${e.en?`<div class="ex-en">${e.en}</div>`:''}</div>`).join('');}
+  else{document.getElementById('wmexs').innerHTML=`<a class="ex-link" href="https://jisho.org/search/${encodeURIComponent(wd.word)}%23sentences" target="_blank" rel="noopener">Jisho.orgで例文を見る →</a>`;}
+  document.getElementById('wmextlinks').innerHTML=`<a class="extlink" href="https://jisho.org/search/${encodeURIComponent(wd.word)}" target="_blank" rel="noopener">🔗 Jisho</a><a class="extlink" href="https://tatoeba.org/ja/sentences/search?from=jpn&to=eng&query=${encodeURIComponent(wd.word)}" target="_blank" rel="noopener">📚 例文</a><a class="extlink" href="https://dictionary.goo.ne.jp/word/${encodeURIComponent(wd.word)}/" target="_blank" rel="noopener">📘 goo辞書</a>`;
 }
 function closeWM(){document.getElementById('wmod').classList.remove('open');}
-async function cpWord(word){
-  try{await navigator.clipboard.writeText(word);}
-  catch{const t=document.createElement('textarea');t.value=word;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);}
-  showToast(`「${word}」をコピーしました`);
+function returnToGrid(){
+  document.getElementById('cmod').classList.remove('open');
+  showScreen('game-screen');
+  document.getElementById('clear-banner').style.display='block';
+  // 終了ボタンを「もう一度終了」に変更（再クリア不要なので）
+  const finbtn=document.getElementById('finbtn');
+  if(finbtn){finbtn.disabled=false;finbtn.textContent='🗺 マップへ戻る';finbtn.onclick=()=>{backToStageSelect();};finbtn.className='ab can';}
+  const gubtn=document.getElementById('gubtn');
+  if(gubtn){gubtn.style.display='none';}
 }
+async function cpWord(word){try{await navigator.clipboard.writeText(word);}catch{const t=document.createElement('textarea');t.value=word;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);}showToast(`「${word}」をコピーしました`);}
 function cpCur(){if(curW)cpWord(curW.word);}
 function svCur(){if(!curW)return;saveVoc(curW);}
 
-// ─── VOCAB ───
+// ════════════════════════════════════════════
+// VOCAB
+// ════════════════════════════════════════════
 function getVoc(){try{return JSON.parse(localStorage.getItem('kp_vocab')||'[]');}catch{return[];}}
 function setVoc(v){try{localStorage.setItem('kp_vocab',JSON.stringify(v));}catch{}}
-function saveVoc(wd){
-  let voc=getVoc();if(voc.some(w=>w.word===wd.word)){showToast(`「${wd.word}」はすでに保存済みです`);return;}
+function saveVoc(wd,silent=false){
+  let voc=getVoc();if(voc.some(w=>w.word===wd.word)){if(!silent)showToast(`「${wd.word}」はすでに保存済みです`);return;}
   voc.unshift({word:wd.word,reading:wd.reading||'',meaning:wd.meaning||'',level:cStage?.level||'N5',savedAt:Date.now()});
   setVoc(voc);showToast(`💾「${wd.word}」を単語帳に保存しました！`);
 }
@@ -983,179 +1153,46 @@ function closeVoc(){document.getElementById('voc').classList.remove('open');}
 function renderVoc(){
   const voc=getVoc();document.getElementById('vcnt').textContent=`(${voc.length}語)`;
   const body=document.getElementById('vbody');
-  if(!voc.length){body.innerHTML=`<div class="vempty">📭 まだ保存した言葉がありません<br><br><small>単語チップをクリックして「💾 保存」で保存できます</small></div>`;return;}
+  if(!voc.length){body.innerHTML=`<div class="vempty">📭 まだ保存した言葉がありません<br><small style="margin-top:8px;display:block">単語をクリックして「💾 保存」で保存できます</small></div>`;return;}
   const byLv={};voc.forEach(w=>{if(!byLv[w.level])byLv[w.level]=[];byLv[w.level].push(w);});
-  body.innerHTML=['N5','N4','N3','N2','N1'].filter(lv=>byLv[lv]).map(lv=>{
+  body.innerHTML=LEVELS.filter(lv=>byLv[lv]).map(lv=>{
     const lc=LC[lv];
-    const cards=byLv[lv].map(w=>`<div class="vcard"><div class="vm"><div><span class="vw">${w.word}</span> <span class="vr">${w.reading}</span></div><div class="vmm">${w.meaning}</div></div><div class="vcb"><button class="vcbtn" onclick="cpWord('${w.word}')">📋</button><a href="https://jisho.org/search/${encodeURIComponent(w.word)}" target="_blank" rel="noopener" style="text-decoration:none"><button class="vcbtn">🔗</button></a><button class="vcbtn vdel" onclick="delVoc('${w.word}')">🗑</button></div></div>`).join('');
+    const cards=byLv[lv].map(w=>`<div class="vcard"><div class="vmn"><div><span class="vw">${w.word}</span> <span class="vr">${w.reading}</span></div><div class="vmm">${w.meaning}</div></div><div class="vcb"><button class="vcbtn" onclick="cpWord('${w.word}')">📋</button><a href="https://jisho.org/search/${encodeURIComponent(w.word)}" target="_blank" rel="noopener" style="text-decoration:none"><button class="vcbtn">🔗</button></a><button class="vcbtn vdel" onclick="delVoc('${w.word}')">🗑</button></div></div>`).join('');
     return`<div class="vlg"><div class="vll"><span class="lb" style="background:${lc}20;border-color:${lc}60;color:${lc}">${lv}</span>${byLv[lv].length}語</div>${cards}</div>`;
   }).join('');
 }
 
-// ─── TOAST ───
+// ════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════
 let toastT=null;
-function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.style.display='block';if(toastT)clearTimeout(toastT);toastT=setTimeout(()=>{el.style.display='none';},2400);}
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.style.display='block';el.style.animation='toastIn .2s ease';if(toastT)clearTimeout(toastT);toastT=setTimeout(()=>{el.style.display='none';},2400);}
 
-// ─── SCREEN ───
-function showMap(){document.getElementById('cmod').classList.remove('open');document.getElementById('wmod').classList.remove('open');document.getElementById('game-screen').style.display='none';document.getElementById('map-screen').style.display='block';renderMap();}
-// ステージクリア後、マップに戻る際キャラを次の位置に更新
-function showMapAfterClear(){mapChar=Math.min(prog.u,25);showMap();}
-
-// ─── AUDIO ENGINE ───
-// Web Audio スケジューラ方式 (正確なタイミング・ループ)
-let AC = null;
-let bgmOn = localStorage.getItem('kp_bgm') !== 'off';
-let bgmSched = null;   // setTimeout id
-let bgmRunning = false;
-let bgmMelIdx = 0, bgmBassIdx = 0;
-let bgmMelT = 0, bgmBassT = 0;
-
-// ── メロディ: C major 陽気な JRPG 風 108BPM ──
-// [周波数Hz, 拍数(四分音符=1)]
-const BPM = 108, BEAT = 60/BPM;
-const MEL = [
-  [523.25,1],[659.25,1],[783.99,1],[659.25,1],
-  [587.33,1],[523.25,1],[0,2],
-  [392.00,1],[440.00,1],[523.25,1],[440.00,1],
-  [392.00,1],[0,3],
-  [659.25,1],[783.99,1],[880.00,1],[783.99,1],
-  [659.25,1],[587.33,1],[523.25,1],[0,1],
-  [440.00,1],[523.25,1],[587.33,1],[523.25,1],
-  [523.25,1],[392.00,1],[0,2],
-];
-const BASS = [
-  [130.81,4],[130.81,4],
-  [196.00,4],[130.81,4],
-  [130.81,4],[196.00,4],
-  [110.00,4],[130.81,4],
-];
-
-function initAC(){
-  if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();}
-  if(AC.state==='suspended')AC.resume();
-  return AC;
-}
-
-function bgmNote(freq,t,dur,vol,wave='triangle'){
-  try{
-    const ac=AC;
-    const o=ac.createOscillator(),g=ac.createGain();
-    o.connect(g);g.connect(ac.destination);
-    o.type=wave;o.frequency.value=freq;
-    g.gain.setValueAtTime(0,t);
-    g.gain.linearRampToValueAtTime(vol,t+0.02);
-    g.gain.setValueAtTime(vol,t+dur-0.04);
-    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-    o.start(t);o.stop(t+dur+0.05);
-  }catch(e){}
-}
-
-function bgmSchedule(){
-  if(!bgmRunning)return;
-  try{
-    const ac=initAC();
-    const LA=0.2; // look-ahead 200ms
-    // メロディスケジュール
-    while(bgmMelT < ac.currentTime+LA){
-      const[f,d]=MEL[bgmMelIdx%MEL.length];
-      if(f>0)bgmNote(f,bgmMelT,d*BEAT*0.82,0.10);
-      bgmMelT+=d*BEAT; bgmMelIdx++;
-    }
-    // ベーススケジュール
-    while(bgmBassT < ac.currentTime+LA){
-      const[f,d]=BASS[bgmBassIdx%BASS.length];
-      if(f>0)bgmNote(f,bgmBassT,d*BEAT*0.6,0.05,'sine');
-      bgmBassT+=d*BEAT; bgmBassIdx++;
-    }
-  }catch(e){}
-  bgmSched=setTimeout(bgmSchedule,25);
-}
-
-function startBGM(){
-  if(bgmRunning)return;
-  try{
-    initAC();
-    bgmRunning=true;
-    bgmMelT=AC.currentTime+0.1;
-    bgmBassT=AC.currentTime+0.1;
-    bgmMelIdx=0; bgmBassIdx=0;
-    bgmSchedule();
-  }catch(e){console.warn('BGM start failed:',e);}
-}
-
-function stopBGM(){
-  bgmRunning=false;
-  if(bgmSched){clearTimeout(bgmSched);bgmSched=null;}
-}
-
-function toggleBGM(){
-  bgmOn=!bgmOn;
-  localStorage.setItem('kp_bgm',bgmOn?'on':'off');
-  updateBGMBtn();
-  if(bgmOn){
-    try{
-      if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();
-      const resume=()=>{startBGM();};
-      AC.state==='suspended'?AC.resume().then(resume):resume();
-    }catch(e){}
-  }else{stopBGM();}
-}
-
-function updateBGMBtn(){
-  document.querySelectorAll('.bgmbtn').forEach(b=>{
-    b.textContent=bgmOn?'🔊 BGM':'🔇 BGM';
-    b.classList.toggle('off',!bgmOn);
-  });
-}
-
-function playSFX(type){
-  try{
-    const ac=initAC(),now=ac.currentTime;
-    if(type==='ok'){
-      [[523.25,0],[659.25,.1],[783.99,.2]].forEach(([f,d])=>{
-        const o=ac.createOscillator(),g=ac.createGain();
-        o.connect(g);g.connect(ac.destination);
-        o.type='sine';o.frequency.value=f;
-        const t=now+d;
-        g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.5);
-        o.start(t);o.stop(t+.6);
-      });
-    }else if(type==='ng'){
-      const o=ac.createOscillator(),g=ac.createGain();
-      o.connect(g);g.connect(ac.destination);
-      o.type='sawtooth';
-      o.frequency.setValueAtTime(220,now);
-      o.frequency.exponentialRampToValueAtTime(80,now+.18);
-      g.gain.setValueAtTime(.14,now);
-      g.gain.exponentialRampToValueAtTime(.001,now+.22);
-      o.start(now);o.stop(now+.28);
-    }else if(type==='clear'){
-      [523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=>{
-        const o=ac.createOscillator(),g=ac.createGain();
-        o.connect(g);g.connect(ac.destination);
-        o.type='sine';o.frequency.value=f;
-        const t=now+i*.09;
-        g.gain.setValueAtTime(.17,t);g.gain.exponentialRampToValueAtTime(.001,t+.65);
-        o.start(t);o.stop(t+.7);
-      });
-    }
-  }catch(e){}
-}
-
-// ゲーム開始 or マップ表示時にBGM自動再生（ユーザー操作後のみ）
-let bgmAutoStarted=false;
-document.addEventListener('pointerdown',()=>{
-  if(bgmOn&&!bgmAutoStarted&&!bgmRunning){
-    bgmAutoStarted=true;
-    try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();
-    AC.state==='suspended'?AC.resume().then(startBGM):startBGM();}catch(e){}
+// ════════════════════════════════════════════
+// KEYBOARD
+// ════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(currentScreen==='levelSelect'){
+    if(e.key==='ArrowRight')clickLevel(Math.min(lvlCharPos+1,4));
+    else if(e.key==='ArrowLeft')clickLevel(Math.max(lvlCharPos-1,0));
+    else if(e.key==='Enter')enterLevel(lvlCharPos);
+  }else if(currentScreen==='stageSelect'){
+    if(e.key==='ArrowRight')stageMove(1);
+    else if(e.key==='ArrowLeft')stageMove(-1);
+    else if(e.key==='Enter'){const stages=lvlStages(selectedLevel);beginStage(stages[stgCharPos].id);}
+    else if(e.key==='Escape')showLevelSelect();
   }
-},{passive:true});
+});
 
-// ─── INIT ───
-renderMap();
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+// レベルcharPosを最後の解放レベルに初期化
+lvlCharPos=LEVELS.findLastIndex((_,i)=>lvlUnlocked(i));
+if(lvlCharPos<0)lvlCharPos=0;
+initLevelScreen();
 updateBGMBtn();
-// マップボタン: showMap の代わりに showMapAfterClear を使う場合もあり
+function updateBGMBtn(){updateBGMBtns();}
 </script>
 </body>
 </html>
