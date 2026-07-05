@@ -123,10 +123,28 @@ html,body{height:100%;background:var(--bg);color:var(--txt);font-family:"Hiragin
 .bgmbtn{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3);border-radius:8px;color:#93c5fd;padding:6px 10px;cursor:pointer;font-size:11px;font-family:inherit;transition:all .2s;white-space:nowrap}
 .bgmbtn.off{opacity:.45;color:var(--txt3)}
 /* ── Map character ── */
-#mchar{position:absolute;font-size:22px;transition:left .75s cubic-bezier(.34,1.56,.64,1),top .75s cubic-bezier(.34,1.56,.64,1);pointer-events:none;z-index:10;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
-@keyframes charBob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-5px) rotate(3deg)}}
-.char-idle{animation:charBob 1.8s ease-in-out infinite}
-@keyframes charWalk{0%{transform:scaleX(1)}50%{transform:scaleX(-1)}100%{transform:scaleX(1)}}
+#mchar{position:absolute;font-size:22px;transition:left .25s ease-out,top .25s ease-out;pointer-events:none;z-index:10;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));transform-origin:center bottom}
+@keyframes charBob{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.05)}}
+@keyframes charWalk{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.92) translateY(2px)}}
+.char-idle{animation:charBob 1.6s ease-in-out infinite}
+.char-walk{animation:charWalk .25s ease-in-out infinite}
+/* Map popup */
+#map-popup{position:absolute;background:var(--bg2);border:1px solid var(--vio);border-radius:12px;padding:10px 14px;z-index:20;min-width:130px;box-shadow:0 4px 20px rgba(0,0,0,.5);pointer-events:all;display:none}
+#map-popup::before{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);border:8px solid transparent;border-top-color:var(--vio);border-bottom:none}
+.popup-sid{font-size:10px;color:var(--txt3);margin-bottom:2px}
+.popup-name{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:3px}
+.popup-goal{font-size:11px;color:var(--txt2);margin-bottom:8px}
+.popup-play{width:100%;background:linear-gradient(135deg,var(--vio),var(--blu));border:none;border-radius:8px;color:#fff;padding:7px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit}
+.popup-play:hover{opacity:.9}
+.popup-done{font-size:11px;color:var(--grn);text-align:center}
+/* Zone strips */
+.zone-strip{position:absolute;left:0;right:0;border-radius:8px;pointer-events:none;opacity:.06}
+/* Map nav arrows */
+.map-nav{display:flex;justify-content:center;gap:8px;margin-top:8px}
+.nav-btn{background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);padding:6px 14px;cursor:pointer;font-size:13px;font-family:inherit}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed}
+/* Missed word style */
+.cword-row.missed{opacity:.75}
 /* ── Complete modal redesign ── */
 .cbox{background:var(--bg2);border-radius:20px;padding:20px 18px;text-align:center;max-width:320px;width:100%;border:1px solid var(--vio);box-shadow:0 0 40px rgba(124,58,237,.25);animation:pop .4s ease;max-height:90vh;overflow-y:auto}
 .cmod-words{background:var(--sur);border-radius:10px;padding:8px 8px 4px;margin:10px 0;text-align:left;max-height:180px;overflow-y:auto}
@@ -167,9 +185,20 @@ html,body{height:100%;background:var(--bg);color:var(--txt);font-family:"Hiragin
     <button class="bgmbtn" id="mapbgmbtn" onclick="toggleBGM()" style="position:absolute;right:0;top:4px">🔊 BGM</button>
   </div>
   <div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="legend"></div>
-  <div style="position:relative">
-    <div class="map-box" id="smap"></div>
+  <div style="position:relative" id="map-area">
+    <div class="map-box" id="smap" style="position:relative"></div>
     <div id="mchar" class="char-idle">🧑‍🎓</div>
+    <div id="map-popup">
+      <div class="popup-sid" id="popup-sid"></div>
+      <div class="popup-name" id="popup-name"></div>
+      <div class="popup-goal" id="popup-goal"></div>
+      <div id="popup-done"></div>
+      <button class="popup-play" id="popup-play-btn" onclick="playCurrentMapStage()">▶ プレイ</button>
+    </div>
+  </div>
+  <div class="map-nav">
+    <button class="nav-btn" id="nav-prev" onclick="mapMove(-1)">← 前のステージ</button>
+    <button class="nav-btn" id="nav-next" onclick="mapMove(1)">次のステージ →</button>
   </div>
   <div class="stats-box">
     <div style="display:flex;justify-content:space-between;align-items:center">
@@ -250,6 +279,14 @@ html,body{height:100%;background:var(--bg);color:var(--txt);font-family:"Hiragin
         <button class="saveall-btn" onclick="saveAllFound()">全部保存 💾</button>
       </div>
       <div id="cchips"></div>
+    </div>
+    <div id="cmissed" style="display:none;margin-bottom:10px">
+      <div style="font-size:10px;color:var(--txt3);margin-bottom:5px;display:flex;align-items:center;gap:6px">
+        <span>😅 見つけられなかった言葉</span>
+      </div>
+      <div class="cmod-words" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2)">
+        <div id="cmissed-list"></div>
+      </div>
     </div>
     <div class="cbtns" style="gap:6px">
       <button class="cmap" style="font-size:12px;padding:8px 10px" onclick="showMap()">🗺 マップ</button>
@@ -509,7 +546,7 @@ function renderMap(){
     row.forEach((sid,ci)=>{
       const sc=STAGES.find(s=>s.id===sid),st=sst(sid),lc=LC[sc.level];
       const isDone=st==='done',isCur=st==='cur',isLk=st==='locked';
-      h+=`<button class="snode${isCur?' cur':''}" ${isLk?'disabled':''} ${!isLk?`onclick="beginStage(${sid})"`:''}
+      h+=`<button class="snode${isCur?' cur':''}" ${isLk?'disabled':''} ${!isLk?`onclick="clickMapStage(${sid})"`:''}
         data-sid="${sid}"
         style="border-color:${isDone?'#d4a017':isCur?lc:isLk?'#1e2d4a':lc+'50'};background:${isDone?'#d4a01712':isCur?lc+'18':'transparent'};color:${isDone?'#d4a017':isCur?lc:isLk?'#2d3748':lc};box-shadow:${isCur?`0 0 14px ${lc}40`:'none'}"
         title="S${sid}: ${sc.name}"><span class="se">${isDone?'✓':isLk?'🔒':sc.emoji}</span><span class="si">S${sid}</span></button>`;
@@ -522,19 +559,106 @@ function renderMap(){
   const done=prog.c.length;
   document.getElementById('sdone').textContent=`${done} / 25`;
   document.getElementById('sbar').style.width=`${(done/25)*100}%`;
-  setTimeout(()=>positionChar(Math.min(prog.u,25),false),80);
+  mapChar=Math.min(mapChar,prog.u);
+  setTimeout(()=>{positionChar(mapChar,false);showMapPopup(mapChar);},100);
   updateBGMBtn();
+  // nav arrows 更新
+  setTimeout(()=>{
+    document.getElementById('nav-prev').disabled=mapChar<=1;
+    document.getElementById('nav-next').disabled=mapChar>=prog.u;
+  },150);
 }
+let mapChar=1; // キャラの現在位置
+let mapWalking=false;
+
 function positionChar(sid,animate){
   const char=document.getElementById('mchar');if(!char)return;
   const btn=document.querySelector(`[data-sid="${sid}"]`);if(!btn)return;
   const map=document.getElementById('smap');if(!map)return;
   const mr=map.getBoundingClientRect(),br=btn.getBoundingClientRect();
   const left=br.left-mr.left+br.width/2-11;
-  const top=br.top-mr.top-26;
-  if(!animate){char.style.transition='none';requestAnimationFrame(()=>{char.style.left=left+'px';char.style.top=top+'px';requestAnimationFrame(()=>{char.style.transition='left .75s cubic-bezier(.34,1.56,.64,1),top .75s cubic-bezier(.34,1.56,.64,1)';});});}
-  else{char.style.left=left+'px';char.style.top=top+'px';}
+  const top=br.top-mr.top-28;
+  if(!animate){
+    char.style.transition='none';
+    requestAnimationFrame(()=>{
+      char.style.left=left+'px';char.style.top=top+'px';
+      requestAnimationFrame(()=>{char.style.transition='left .22s ease-out,top .22s ease-out';});
+    });
+  }else{char.style.left=left+'px';char.style.top=top+'px';}
 }
+
+function showMapPopup(sid){
+  const sc=STAGES.find(s=>s.id===sid);if(!sc)return;
+  const popup=document.getElementById('map-popup');
+  const btn=document.querySelector(`[data-sid="${sid}"]`);
+  if(!btn||!popup)return;
+  const map=document.getElementById('smap');
+  const mr=map.getBoundingClientRect(),br=btn.getBoundingClientRect();
+  const left=br.left-mr.left+br.width/2;
+  const top=br.top-mr.top-12;
+  const pw=140;
+  popup.style.left=Math.max(4,Math.min(left-pw/2,mr.width-pw-4))+'px';
+  popup.style.top=Math.max(0,top-popup.offsetHeight-16)+'px';
+  document.getElementById('popup-sid').textContent=`S${sid} · ${sc.level}`;
+  document.getElementById('popup-name').textContent=`${sc.emoji} ${sc.name}`;
+  document.getElementById('popup-goal').textContent=`目標: ${sc.cw}語見つけよう`;
+  const isDone=prog.c.includes(sid);
+  document.getElementById('popup-done').innerHTML=isDone?'<span class="popup-done">✓ クリア済み</span>':'';
+  document.getElementById('popup-play-btn').textContent=isDone?'▶ もう一度':'▶ プレイ';
+  popup.style.display='block';
+  // nav arrows
+  document.getElementById('nav-prev').disabled=mapChar<=1;
+  document.getElementById('nav-next').disabled=mapChar>=prog.u;
+}
+
+function hideMapPopup(){document.getElementById('map-popup').style.display='none';}
+
+async function clickMapStage(sid){
+  if(mapWalking)return;
+  if(sid>prog.u){showToast('🔒 まだ解放されていません');return;}
+  if(sid===mapChar){showMapPopup(sid);return;}
+  hideMapPopup();
+  mapWalking=true;
+  const char=document.getElementById('mchar');
+  char.classList.remove('char-idle');
+  char.classList.add('char-walk');
+  const dir=sid>mapChar?1:-1;
+  // キャラを1ステップずつ移動
+  while(mapChar!==sid){
+    mapChar+=dir;
+    if(mapChar<1||mapChar>25)break;
+    positionChar(mapChar,true);
+    await new Promise(r=>setTimeout(r,180));
+  }
+  char.classList.remove('char-walk');
+  char.classList.add('char-idle');
+  mapWalking=false;
+  // 到着後ポップアップ表示（少し待つ）
+  await new Promise(r=>setTimeout(r,120));
+  showMapPopup(mapChar);
+}
+
+function mapMove(dir){
+  const next=mapChar+dir;
+  if(next<1||next>prog.u)return;
+  clickMapStage(next);
+}
+
+function playCurrentMapStage(){
+  hideMapPopup();
+  beginStage(mapChar);
+}
+
+// キーボード操作
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('map-screen').style.display==='none')return;
+  if(document.getElementById('map-popup').style.display!=='none'&&e.key==='Enter'){
+    e.preventDefault();playCurrentMapStage();return;
+  }
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();mapMove(1);}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();mapMove(-1);}
+  else if(e.key==='Enter'||e.key===' '){e.preventDefault();showMapPopup(mapChar);}
+});
 function resetProg(){if(!confirm('本当にリセットしますか？'))return;prog={u:1,c:[]};saveP();renderMap();}
 
 // ─── STAGE ───
@@ -687,18 +811,36 @@ function showComplete(isGU){
   document.getElementById('cemi').textContent=isGU?'🏳':'🎉';
   document.getElementById('ctitle').textContent=isGU?'ギブアップ…':'ステージクリア！';
   document.getElementById('ctitle').style.color=isGU?'var(--red)':'var(--viol)';
-  const selfound=fWords.filter(w=>!w.gu).length;
-  document.getElementById('csub').textContent=`S${cStage.id} ${cStage.name} — 自力で${selfound}語発見`;
+  const selfound=fWords.filter(w=>!w.gu);
+  document.getElementById('csub').textContent=`S${cStage.id} ${cStage.name} — 自力で${selfound.length}語発見`;
   document.getElementById('cword-count').textContent=`見つけた言葉（${fWords.length}語）`;
   const vocab=getVoc();
+  // 見つけた言葉
   document.getElementById('cchips').innerHTML=fWords.map(w=>{
     const saved=vocab.some(v=>v.word===w.word);
     return`<div class="cword-row${w.gu?' g':''}" onclick="openWMFromComplete('${w.word}')">
-      <span class="cwrd">${w.word}</span>
-      <span class="crdr">${w.reading||''}</span>
+      <span class="cwrd">${w.word}</span><span class="crdr">${w.reading||''}</span>
       <button class="csavebtn${saved?' saved':''}" onclick="event.stopPropagation();saveFromComplete('${w.word}',this)">${saved?'✓':'💾'}</button>
     </div>`;
   }).join('');
+  // 見つけられなかった言葉
+  const missed=kWords.filter(w=>!fWords.some(f=>f.word===w.word));
+  const missedEl=document.getElementById('cmissed');
+  if(missed.length>0){
+    missedEl.style.display='block';
+    document.getElementById('cmissed-list').innerHTML=missed.map(w=>
+      `<div class="cword-row missed" onclick="openWMFromComplete('${w.word}')">
+        <span class="cwrd" style="color:var(--txt2)">${w.word}</span>
+        <span class="crdr">${w.reading||''}</span>
+        <span class="crdr" style="margin-left:auto;color:var(--txt3);font-size:9px">${w.meaning||''}</span>
+      </div>`
+    ).join('');
+  }else{
+    missedEl.style.display='none';
+    if(selfound.length===kWords.length&&kWords.length>0){
+      document.getElementById('ctitle').textContent='🌟 パーフェクト！';
+    }
+  }
   document.getElementById('cnxt').style.display=cStage.id<25?'':'none';
   document.getElementById('cmod').classList.add('open');
   if(!isGU)playSFX('clear');
@@ -856,96 +998,164 @@ function showToast(msg){const el=document.getElementById('toast');el.textContent
 
 // ─── SCREEN ───
 function showMap(){document.getElementById('cmod').classList.remove('open');document.getElementById('wmod').classList.remove('open');document.getElementById('game-screen').style.display='none';document.getElementById('map-screen').style.display='block';renderMap();}
+// ステージクリア後、マップに戻る際キャラを次の位置に更新
+function showMapAfterClear(){mapChar=Math.min(prog.u,25);showMap();}
 
-// ─── AUDIO ───
-let AC=null;
-let bgmOn=localStorage.getItem('kp_bgm')!=='off';
-let bgmTimer=null;
-const PENTA=[261.63,293.66,329.63,392.00,440.00,523.25,587.33,659.25];
+// ─── AUDIO ENGINE ───
+// Web Audio スケジューラ方式 (正確なタイミング・ループ)
+let AC = null;
+let bgmOn = localStorage.getItem('kp_bgm') !== 'off';
+let bgmSched = null;   // setTimeout id
+let bgmRunning = false;
+let bgmMelIdx = 0, bgmBassIdx = 0;
+let bgmMelT = 0, bgmBassT = 0;
 
-function getAC(){
-  if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();
+// ── メロディ: C major 陽気な JRPG 風 108BPM ──
+// [周波数Hz, 拍数(四分音符=1)]
+const BPM = 108, BEAT = 60/BPM;
+const MEL = [
+  [523.25,1],[659.25,1],[783.99,1],[659.25,1],
+  [587.33,1],[523.25,1],[0,2],
+  [392.00,1],[440.00,1],[523.25,1],[440.00,1],
+  [392.00,1],[0,3],
+  [659.25,1],[783.99,1],[880.00,1],[783.99,1],
+  [659.25,1],[587.33,1],[523.25,1],[0,1],
+  [440.00,1],[523.25,1],[587.33,1],[523.25,1],
+  [523.25,1],[392.00,1],[0,2],
+];
+const BASS = [
+  [130.81,4],[130.81,4],
+  [196.00,4],[130.81,4],
+  [130.81,4],[196.00,4],
+  [110.00,4],[130.81,4],
+];
+
+function initAC(){
+  if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();}
   if(AC.state==='suspended')AC.resume();
   return AC;
 }
 
+function bgmNote(freq,t,dur,vol,wave='triangle'){
+  try{
+    const ac=AC;
+    const o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.type=wave;o.frequency.value=freq;
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(vol,t+0.02);
+    g.gain.setValueAtTime(vol,t+dur-0.04);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    o.start(t);o.stop(t+dur+0.05);
+  }catch(e){}
+}
+
+function bgmSchedule(){
+  if(!bgmRunning)return;
+  try{
+    const ac=initAC();
+    const LA=0.2; // look-ahead 200ms
+    // メロディスケジュール
+    while(bgmMelT < ac.currentTime+LA){
+      const[f,d]=MEL[bgmMelIdx%MEL.length];
+      if(f>0)bgmNote(f,bgmMelT,d*BEAT*0.82,0.10);
+      bgmMelT+=d*BEAT; bgmMelIdx++;
+    }
+    // ベーススケジュール
+    while(bgmBassT < ac.currentTime+LA){
+      const[f,d]=BASS[bgmBassIdx%BASS.length];
+      if(f>0)bgmNote(f,bgmBassT,d*BEAT*0.6,0.05,'sine');
+      bgmBassT+=d*BEAT; bgmBassIdx++;
+    }
+  }catch(e){}
+  bgmSched=setTimeout(bgmSchedule,25);
+}
+
+function startBGM(){
+  if(bgmRunning)return;
+  try{
+    initAC();
+    bgmRunning=true;
+    bgmMelT=AC.currentTime+0.1;
+    bgmBassT=AC.currentTime+0.1;
+    bgmMelIdx=0; bgmBassIdx=0;
+    bgmSchedule();
+  }catch(e){console.warn('BGM start failed:',e);}
+}
+
+function stopBGM(){
+  bgmRunning=false;
+  if(bgmSched){clearTimeout(bgmSched);bgmSched=null;}
+}
+
+function toggleBGM(){
+  bgmOn=!bgmOn;
+  localStorage.setItem('kp_bgm',bgmOn?'on':'off');
+  updateBGMBtn();
+  if(bgmOn){
+    try{
+      if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();
+      const resume=()=>{startBGM();};
+      AC.state==='suspended'?AC.resume().then(resume):resume();
+    }catch(e){}
+  }else{stopBGM();}
+}
+
+function updateBGMBtn(){
+  document.querySelectorAll('.bgmbtn').forEach(b=>{
+    b.textContent=bgmOn?'🔊 BGM':'🔇 BGM';
+    b.classList.toggle('off',!bgmOn);
+  });
+}
+
 function playSFX(type){
   try{
-    const ac=getAC();
+    const ac=initAC(),now=ac.currentTime;
     if(type==='ok'){
       [[523.25,0],[659.25,.1],[783.99,.2]].forEach(([f,d])=>{
         const o=ac.createOscillator(),g=ac.createGain();
         o.connect(g);g.connect(ac.destination);
         o.type='sine';o.frequency.value=f;
-        const t=ac.currentTime+d;
-        g.gain.setValueAtTime(.22,t);g.gain.exponentialRampToValueAtTime(.001,t+.5);
+        const t=now+d;
+        g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.5);
         o.start(t);o.stop(t+.6);
       });
     }else if(type==='ng'){
       const o=ac.createOscillator(),g=ac.createGain();
       o.connect(g);g.connect(ac.destination);
       o.type='sawtooth';
-      o.frequency.setValueAtTime(200,ac.currentTime);
-      o.frequency.exponentialRampToValueAtTime(80,ac.currentTime+.18);
-      g.gain.setValueAtTime(.15,ac.currentTime);
-      g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.22);
-      o.start(ac.currentTime);o.stop(ac.currentTime+.25);
+      o.frequency.setValueAtTime(220,now);
+      o.frequency.exponentialRampToValueAtTime(80,now+.18);
+      g.gain.setValueAtTime(.14,now);
+      g.gain.exponentialRampToValueAtTime(.001,now+.22);
+      o.start(now);o.stop(now+.28);
     }else if(type==='clear'){
-      // クリア音: キラキラ上昇
       [523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=>{
         const o=ac.createOscillator(),g=ac.createGain();
         o.connect(g);g.connect(ac.destination);
         o.type='sine';o.frequency.value=f;
-        const t=ac.currentTime+i*.08;
-        g.gain.setValueAtTime(.18,t);g.gain.exponentialRampToValueAtTime(.001,t+.6);
+        const t=now+i*.09;
+        g.gain.setValueAtTime(.17,t);g.gain.exponentialRampToValueAtTime(.001,t+.65);
         o.start(t);o.stop(t+.7);
       });
     }
   }catch(e){}
 }
 
-function bgmNote(){
-  if(!bgmOn)return;
-  try{
-    const ac=getAC();
-    const f=PENTA[Math.floor(Math.random()*PENTA.length)]*(Math.random()>.7?2:1);
-    const o=ac.createOscillator(),g=ac.createGain();
-    const dl=ac.createDelay(1.5),dlg=ac.createGain();
-    o.connect(g);g.connect(ac.destination);g.connect(dl);dl.connect(dlg);dlg.connect(ac.destination);
-    dl.delayTime.value=.28;dlg.gain.value=.18;
-    o.type='sine';o.frequency.value=f;
-    const t=ac.currentTime,vol=.03+Math.random()*.035;
-    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.12);g.gain.exponentialRampToValueAtTime(.001,t+2.8);
-    o.start(t);o.stop(t+3.2);
-  }catch(e){}
-  if(bgmOn)bgmTimer=setTimeout(bgmNote,600+Math.random()*1200);
-}
-
-function startBGM(){if(bgmOn&&!bgmTimer){bgmNote();}}
-function stopBGM(){if(bgmTimer){clearTimeout(bgmTimer);bgmTimer=null;}}
-
-function toggleBGM(){
-  bgmOn=!bgmOn;
-  localStorage.setItem('kp_bgm',bgmOn?'on':'off');
-  if(bgmOn){try{getAC();}catch(e){}startBGM();}else{stopBGM();}
-  updateBGMBtn();
-}
-
-function updateBGMBtn(){
-  document.querySelectorAll('.bgmbtn').forEach(btn=>{
-    btn.textContent=bgmOn?'🔊 BGM':'🔇 BGM';
-    btn.classList.toggle('off',!bgmOn);
-  });
-}
-
-// タップ時にAudioContext を起動（ブラウザの自動再生制限回避）
+// ゲーム開始 or マップ表示時にBGM自動再生（ユーザー操作後のみ）
+let bgmAutoStarted=false;
 document.addEventListener('pointerdown',()=>{
-  if(bgmOn)try{getAC();if(!bgmTimer)startBGM();}catch(e){}
-},{once:false,passive:true});
+  if(bgmOn&&!bgmAutoStarted&&!bgmRunning){
+    bgmAutoStarted=true;
+    try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();
+    AC.state==='suspended'?AC.resume().then(startBGM):startBGM();}catch(e){}
+  }
+},{passive:true});
 
 // ─── INIT ───
 renderMap();
 updateBGMBtn();
+// マップボタン: showMap の代わりに showMapAfterClear を使う場合もあり
 </script>
 </body>
 </html>
