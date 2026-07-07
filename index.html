@@ -28,7 +28,7 @@ html,body{height:100%;background:var(--bg);color:var(--txt);
 @keyframes toastIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
 
 /* ── SHARED ── */
-.screen{display:none;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;padding:16px 14px}
+.screen{display:none;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;padding:16px 14px;overflow-x:hidden}
 .screen.active{display:flex}
 .title-grad{background:linear-gradient(90deg,#a78bfa,#60a5fa,#34d399,#a78bfa);background-size:300% auto;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 4s linear infinite;
@@ -46,197 +46,128 @@ html,body{height:100%;background:var(--bg);color:var(--txt);
 .ls-subtitle{color:var(--txt3);font-size:11px;text-align:center;margin-bottom:20px}
 
 /* Walk area */
-.walk-area{position:relative;padding:30px 10px 16px;margin-bottom:4px}
+.walk-area{position:relative;padding:40px 8px 12px;margin-bottom:8px}
 .walk-path{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
 .walk-path::before{content:'';position:absolute;top:50%;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,var(--bdr2),var(--bdr2));transform:translateY(-50%);z-index:0;border-radius:2px}
-.wnode{width:56px;height:56px;border-radius:50%;border:2px solid;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;z-index:2;
-  background:var(--bg2);flex-shrink:0;font-family:inherit}
+  background:var(--bdr2);transform:translateY(-50%);z-index:0;border-radius:2px}
+.wnode-wrap{display:flex;flex-direction:column;align-items:center;position:relative;z-index:2;flex:1;max-width:100px}
+.wn-char{font-size:22px;height:30px;display:flex;align-items:flex-end;justify-content:center;
+  position:absolute;top:-34px;left:50%;transform:translateX(-50%);filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.wnode{width:60px;height:60px;border-radius:50%;border:2px solid;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;transition:all .25s;background:var(--bg2);
+  font-family:inherit;padding:2px;position:relative;z-index:2}
 .wnode:not(.locked):hover{transform:scale(1.1)}
 .wnode.locked{cursor:not-allowed;opacity:.4}
 .wnode.current{animation:pulse 2s infinite}
-.wnode .wn-label{font-size:11px;font-weight:700}
-.wnode .wn-prog{font-size:8px;opacity:.7;margin-top:1px}
-.walk-char{position:absolute;font-size:22px;top:0;transition:left .2s ease-out;
-  filter:drop-shadow(0 2px 5px rgba(0,0,0,.6));pointer-events:none;z-index:10}
-.walk-char.idle{animation:charBob 1.5s ease-in-out infinite}
-.walk-char.walking{animation:charWalk .2s ease-in-out infinite}
-
-/* Level info card */
-.info-card{background:var(--bg2);border-radius:14px;border:1px solid var(--bdr);padding:16px;margin-bottom:12px;animation:slideUp .2s ease}
-.ic-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.ic-emoji{font-size:28px}
-.ic-title{font-size:17px;font-weight:700}
-.ic-sub{font-size:11px;color:var(--txt3);margin-top:2px}
-.ic-progress{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.ic-stage-dot{width:28px;height:28px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
-.ic-play-btn{width:100%;border:none;border-radius:10px;padding:11px;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;background:linear-gradient(135deg,var(--vio),var(--blu));color:#fff;transition:opacity .2s}
-.ic-play-btn:hover{opacity:.9}
-.ic-locked{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--txt3);font-size:13px;padding:10px}
-
-/* Stats row */
-.stats-row{display:flex;justify-content:space-between;align-items:center;background:var(--bg2);
-  border-radius:10px;border:1px solid var(--bdr);padding:10px 14px;margin-bottom:8px}
-.stat-label{color:var(--txt2);font-size:12px}
-.stat-val{font-weight:700;font-size:13px}
-.stat-bar-wrap{margin-top:6px}
-.stat-bar{background:var(--sur2);border-radius:3px;height:4px;overflow:hidden}
-.stat-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--vio),var(--grn));transition:width .6s}
-
-/* ── STAGE SELECT ── */
-#stage-screen{}
-.ss-header{display:flex;align-items:center;gap:10px;margin-bottom:4px}
-.back-btn{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);
-  padding:7px 12px;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap}
-.ss-title{font-size:16px;font-weight:700;text-align:center;margin-bottom:20px}
-
-.stage-walk-area{position:relative;padding:30px 6px 16px}
+.wnode .wn-emoji{font-size:16px;line-height:1}
+.wnode .wn-label{font-size:10px;font-weight:700;line-height:1;margin-top:2px}
+.wnode .wn-prog{font-size:8px;opacity:.65;line-height:1;margin-top:1px}
+.stage-walk-area{position:relative;padding:40px 8px 12px;margin-bottom:8px}
 .stage-path{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
 .stage-path::before{content:'';position:absolute;top:50%;left:0;right:0;height:3px;
   background:var(--bdr2);transform:translateY(-50%);z-index:0;border-radius:2px}
-.snode{width:52px;height:52px;border-radius:50%;border:2px solid;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;z-index:2;
-  background:var(--bg2);flex-shrink:0;font-family:inherit}
+.snode-wrap{display:flex;flex-direction:column;align-items:center;position:relative;z-index:2;flex:1;max-width:100px}
+.sn-char{font-size:20px;height:28px;display:flex;align-items:flex-end;justify-content:center;
+  position:absolute;top:-32px;left:50%;transform:translateX(-50%);filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.snode{width:56px;height:56px;border-radius:50%;border:2px solid;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;transition:all .2s;background:var(--bg2);
+  font-family:inherit;padding:2px;position:relative;z-index:2}
 .snode:not(.locked):hover{transform:scale(1.1)}
 .snode.locked{cursor:not-allowed;opacity:.4}
 .snode.current{animation:pulse 2s infinite}
-.snode .sn-emoji{font-size:14px}
-.snode .sn-num{font-size:8px;opacity:.7;margin-top:1px;font-weight:700}
-
-.stage-info-card{background:var(--bg2);border-radius:14px;border:1px solid var(--bdr);padding:16px;
-  margin-bottom:12px;animation:slideUp .2s ease}
-.sic-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.sic-emoji{font-size:24px}
-.sic-title{font-size:16px;font-weight:700}
-.sic-goal{font-size:12px;color:var(--txt2);margin-top:2px}
-.sic-status{margin-bottom:10px}
-.sic-play{width:100%;border:none;border-radius:10px;padding:10px;cursor:pointer;font-size:14px;
-  font-weight:700;font-family:inherit;background:linear-gradient(135deg,var(--vio),var(--blu));color:#fff}
-
-/* nav row */
-.nav-row{display:flex;gap:8px;justify-content:center;margin-bottom:8px}
-.nav-btn{background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);
-  padding:7px 16px;cursor:pointer;font-size:12px;font-family:inherit}
-.nav-btn:disabled{opacity:.35;cursor:not-allowed}
-
-/* ── GAME SCREEN ── */
-#game-screen{}
-.ghdr{display:flex;align-items:center;gap:7px;margin-bottom:8px}
-.bsm{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);
-  padding:7px 10px;cursor:pointer;font-size:12px;white-space:nowrap;font-family:inherit}
-.bsm:hover{background:var(--sur2)}
-.prog-wrap{background:var(--bg2);border-radius:8px;padding:7px 12px;border:1px solid var(--bdr);
-  display:flex;align-items:center;gap:10px;margin-bottom:7px}
-.prog-track{flex:1;background:var(--sur2);border-radius:3px;height:5px;overflow:hidden}
-.prog-fill{height:100%;border-radius:3px;transition:width .5s}
-.wdisp{height:38px;background:var(--bg2);border-radius:8px;border:1px solid var(--bdr);
-  display:flex;align-items:center;justify-content:center;margin-bottom:7px;
-  font-size:20px;font-weight:700;letter-spacing:4px;transition:border-color .15s}
-.wdisp.act{border-color:rgba(124,58,237,.6)}
-.wdisp .ht{font-size:11px;color:var(--txt3);letter-spacing:0;font-weight:400}
-#kg{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;background:var(--bg2);border-radius:14px;
-  padding:10px;border:1px solid var(--bdr);margin-bottom:7px;touch-action:none;cursor:crosshair}
-.kc{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:clamp(15px,4.5vw,25px);
-  font-weight:700;border-radius:8px;border:2px solid var(--bdr);background:var(--sur);color:var(--txt);
-  transition:all .1s;cursor:crosshair}
-.kc.sel{background:rgba(124,58,237,.3)!important;border-color:var(--vio)!important;color:var(--viol)!important;
-  transform:scale(1.07)!important;box-shadow:0 0 12px rgba(124,58,237,.45)!important}
-.kc.fc{background:rgba(16,185,129,.1)!important;border-color:rgba(16,185,129,.35)!important;color:var(--grnl)!important}
-.kc.hc{background:rgba(212,160,23,.2)!important;border-color:var(--gld)!important;color:var(--gldl)!important;
-  animation:pulse .8s infinite!important}
-.kc.gc{background:rgba(239,68,68,.1)!important;border-color:rgba(239,68,68,.3)!important;color:var(--redl)!important}
-.arow{display:flex;gap:6px;margin-bottom:7px}
-.ab{flex:1;border:1px solid;border-radius:8px;padding:8px 6px;cursor:pointer;font-family:inherit;font-size:12px;
-  font-weight:600;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px}
-.ab:disabled{opacity:.4;cursor:not-allowed}
-.hb{background:rgba(212,160,23,.08);border-color:rgba(212,160,23,.4);color:var(--gldl)}.hb:not(:disabled):hover{background:rgba(212,160,23,.15)}
-.gb{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.35);color:var(--redl)}.gb:not(:disabled):hover{background:rgba(239,68,68,.14)}
-.fbk{border-radius:8px;padding:7px 12px;margin-bottom:7px;animation:slideUp .25s ease}
-.fok{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.35)}
-.ferr{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.35)}
-.fok .fw{font-size:17px;font-weight:700;color:var(--grnl)}.fok .fr{font-size:11px;color:var(--txt2);margin-left:6px}
-.fok .fm{font-size:11px;color:var(--txt2);margin-top:2px}
-.ferr .fe{color:var(--redl);font-size:12px}
-.fwrap{background:var(--bg2);border-radius:8px;padding:8px 10px;border:1px solid var(--bdr)}
-.fwlbl{color:var(--txt3);font-size:10px;margin-bottom:5px}
-.fwchips{display:flex;flex-wrap:wrap;gap:5px}
-.chip{border-radius:6px;padding:3px 7px;animation:pop .3s ease;display:flex;align-items:center;gap:5px;cursor:pointer}
-.chip.n{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.35)}.chip.n:hover{background:rgba(16,185,129,.2)}
-.chip.g{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25)}
-.chip .cw{font-weight:700;font-size:14px}.chip.n .cw{color:var(--grnl)}.chip.g .cw{color:var(--redl)}
-.chip .cr{font-size:9px;color:var(--txt3)}
-.ccp{width:18px;height:18px;border:1px solid currentColor;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;opacity:.6;flex-shrink:0}.ccp:hover{opacity:1}
-.gload{aspect-ratio:1;max-height:280px;background:var(--bg2);border-radius:14px;border:1px solid var(--bdr);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;margin-bottom:7px}
-.bspin{width:38px;height:38px;border-width:3px;border-style:solid;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
-
-/* ── WORD MODAL ── */
-#wmod{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:300;padding:20px}
-#wmod.open{display:flex}
-.wmbox{background:var(--bg2);border-radius:18px;padding:22px 18px;max-width:340px;width:100%;border:1px solid var(--bdr2);animation:pop .3s ease;max-height:88vh;overflow-y:auto}
-.wmw{font-size:36px;font-weight:900;color:var(--grnl);letter-spacing:2px}
-.wmr{font-size:14px;color:var(--txt2);margin-top:2px}
-.wmbadges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.badge{border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;border:1px solid}
-.badge.jlpt{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.4);color:var(--viol)}
-.badge.common{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.4);color:var(--grnl)}
-.wmlbl{font-size:10px;color:var(--txt3);margin-top:12px;margin-bottom:4px}
-.wmsenses{margin-top:0}
-.sense{padding:6px 10px;background:var(--sur);border-radius:8px;border:1px solid var(--bdr);margin-bottom:4px}
-.pos{font-size:9px;font-weight:700;color:var(--ambl);background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);border-radius:4px;padding:1px 5px;margin-right:6px;vertical-align:middle}
-.meaning{font-size:13px;color:var(--txt);line-height:1.5;vertical-align:middle}
-.example{padding:8px 10px;background:var(--sur);border-radius:8px;border:1px solid var(--bdr);margin-bottom:5px}
-.ex-ja{font-size:13px;color:var(--txt);line-height:1.7}.ex-ja mark{background:rgba(124,58,237,.3);color:var(--viol);border-radius:3px;padding:0 2px}
-.ex-en{font-size:11px;color:var(--txt3);margin-top:3px}
-.ex-link{display:block;padding:8px 12px;background:var(--sur);border-radius:8px;border:1px solid var(--bdr);color:var(--txt2);text-decoration:none;font-size:12px}
-.wmextlinks{display:flex;gap:5px;margin-top:10px}
-.extlink{flex:1;padding:6px 4px;border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);text-decoration:none;font-size:10px;text-align:center;background:var(--sur)}
-.wmbtns{display:flex;gap:7px;margin-top:14px}
-.wmbtn{flex:1;border-radius:9px;padding:9px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;border:1px solid;transition:all .2s}
-.wmcp{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.4);color:#93c5fd}
-.wmsv{background:rgba(212,160,23,.08);border-color:rgba(212,160,23,.4);color:var(--gldl)}
-.wmcl{background:var(--sur2);border-color:var(--bdr);color:var(--txt2)}
-.ldg{color:var(--txt3);font-size:12px;padding:8px 0;text-align:center}
-
-/* ── VOCAB OVERLAY ── */
-#voc{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;flex-direction:column;z-index:250}
-#voc.open{display:flex}
-.vhdr{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--bdr);background:var(--bg2);flex-shrink:0}
-.vbody{flex:1;overflow-y:auto;padding:12px;max-width:480px;width:100%;margin:0 auto}
-.vempty{text-align:center;color:var(--txt3);font-size:13px;margin-top:40px}
-.vlg{margin-bottom:16px}
-.vll{font-size:11px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.vcard{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:flex-start;gap:10px}
-.vmn{flex:1;min-width:0}.vw{font-size:20px;font-weight:700;color:var(--grnl)}.vr{font-size:12px;color:var(--txt2)}.vmm{font-size:12px;color:var(--txt);margin-top:4px}
-.vcb{display:flex;flex-direction:column;gap:5px;flex-shrink:0}
-.vcbtn{border:1px solid var(--bdr);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:10px;background:transparent;color:var(--txt2);font-family:inherit}.vcbtn:hover{background:var(--sur2)}
-.vdel{color:var(--redl);border-color:rgba(239,68,68,.3)}
-
-/* ── COMPLETE MODAL ── */
-#cmod{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:flex-start;justify-content:center;z-index:200;padding:20px;overflow-y:auto}
-#cmod.open{display:flex}
-.cbox{background:var(--bg2);border-radius:20px;padding:20px 16px;width:100%;max-width:340px;border:1px solid var(--vio);box-shadow:0 0 40px rgba(124,58,237,.25);animation:pop .4s ease;margin:auto}
-.cmod-sec{background:var(--sur);border-radius:10px;padding:8px;margin-bottom:10px;max-height:160px;overflow-y:auto}
-.cmod-lbl{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:10px;color:var(--txt3)}
-.saveall-btn{background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.35);color:var(--gldl);border-radius:6px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:inherit}
-.cword-row{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px;cursor:pointer;transition:background .15s;margin-bottom:3px}
-.cword-row:hover{background:var(--sur2)}
-.cwrd{font-weight:700;font-size:14px;color:var(--grnl)}.cword-row.g .cwrd{color:var(--redl)}.cword-row.missed .cwrd{color:var(--txt2)}
-.crdr{font-size:9px;color:var(--txt3)}
-.csavebtn{margin-left:auto;background:transparent;border:1px solid rgba(212,160,23,.3);border-radius:5px;color:var(--gldl);padding:2px 6px;cursor:pointer;font-size:10px;font-family:inherit;flex-shrink:0}
-.csavebtn.saved{color:var(--grn);border-color:rgba(16,185,129,.3)}
-.cbtns{display:flex;gap:6px}
-.cmap{background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;color:var(--txt2);padding:9px 12px;cursor:pointer;font-size:12px;font-family:inherit}
-.cnxt{background:linear-gradient(135deg,var(--vio),var(--blu));border:none;border-radius:10px;color:#fff;padding:9px 14px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit}
-
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
-.finb{background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.35);color:var(--viol)}
+.snode .sn-emoji{font-size:14px;line-height:1}
+.snode .sn-num{font-size:8px;font-weight:700;line-height:1;margin-top:2px;opacity:.8}
+.finb{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.45);color:var(--viol);border-radius:10px;font-weight:700;box-shadow:0 2px 8px rgba(124,58,237,.2);transition:all .2s}
 .finb:not(:disabled):hover{background:rgba(124,58,237,.18)}
 .finb:disabled{opacity:.3}
 .finb.can{background:rgba(124,58,237,.15);border-color:var(--viol);color:var(--viol)}
 .finb.goal{background:linear-gradient(135deg,rgba(212,160,23,.2),rgba(124,58,237,.2));border-color:var(--gld);color:var(--gldl);animation:pulse 1.8s infinite}
 .clear-banner{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:8px 12px;margin-bottom:7px;text-align:center;font-size:12px;color:var(--grnl);display:none}
+
+/* ── ゲームグリッド (必須) ── */
+#kg{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;background:var(--bg2);border-radius:14px;padding:10px;border:1px solid var(--bdr);margin-bottom:7px;touch-action:none;cursor:crosshair}
+.kc{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:clamp(15px,4.5vw,25px);font-weight:700;border-radius:8px;border:2px solid var(--bdr);background:var(--sur);color:var(--txt);transition:all .1s;cursor:crosshair}
+.kc.sel{background:rgba(124,58,237,.3)!important;border-color:var(--vio)!important;color:var(--viol)!important;transform:scale(1.07)!important;box-shadow:0 0 12px rgba(124,58,237,.45)!important}
+.kc.fc{background:rgba(16,185,129,.1)!important;border-color:rgba(16,185,129,.35)!important;color:var(--grnl)!important}
+.kc.hc{background:rgba(212,160,23,.2)!important;border-color:var(--gld)!important;color:var(--gldl)!important;animation:pulse .8s infinite!important}
+.kc.gc{background:rgba(239,68,68,.1)!important;border-color:rgba(239,68,68,.3)!important;color:var(--redl)!important}
+/* ── グリッドローディング ── */
+.gload{aspect-ratio:1;max-height:280px;background:var(--bg2);border-radius:14px;border:1px solid var(--bdr);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;margin-bottom:7px}
+.bspin{width:38px;height:38px;border-width:3px;border-style:solid;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+/* ── ステージカード ── */
+.sic-card{background:var(--bg2);border-radius:14px;border:1px solid var(--bdr);overflow:hidden;margin-bottom:12px}
+.sic-hero{display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid var(--bdr)}
+.sic-emoji{font-size:28px;flex-shrink:0}
+.sic-name-lg{font-size:16px;font-weight:700}
+.sic-goal-sm{font-size:11px;color:var(--txt2);margin-top:3px}
+.sic-body{padding:12px 14px}
+.sic-play-lg{width:100%;border:none;border-radius:10px;padding:11px;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;color:#fff;margin-bottom:8px;display:block}
+.sic-play-lg:hover{opacity:.88}
+.sic-mode-row{display:flex;gap:6px}
+.sic-mode-btn{flex:1;padding:10px 6px;border-radius:10px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.sic-mode-en{border:1px solid rgba(59,130,246,.5);color:#93c5fd;background:rgba(59,130,246,.12)}
+.sic-mode-en:hover{background:rgba(59,130,246,.16)}
+.sic-mode-jp{border:1px solid rgba(16,185,129,.5);color:var(--grnl);background:rgba(16,185,129,.1)}
+.sic-mode-jp:hover{background:rgba(16,185,129,.16)}
+/* ── ウォークエリア（修正版・getBoundingClientRect不使用） ── */
+.walk-area{padding:4px 10px 10px;margin-bottom:8px}
+.walk-path{display:flex;align-items:flex-end;position:relative}
+.walk-path::before{content:'';position:absolute;top:50%;left:0;right:0;height:3px;background:var(--bdr2);transform:translateY(-50%);z-index:0;border-radius:2px}
+.wnode{width:60px;height:60px;border-radius:50%;border:2px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;background:var(--bg2);font-family:inherit;padding:0}
+.wnode:not(.locked):hover{transform:scale(1.1)}
+.wnode.locked{cursor:not-allowed;opacity:.4}
+.wnode.current{animation:pulse 2s infinite}
+.snode{width:56px;height:56px;border-radius:50%;border:2px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;background:var(--bg2);font-family:inherit;padding:0}
+.snode:not(.locked):hover{transform:scale(1.1)}
+.snode.locked{cursor:not-allowed;opacity:.4}
+.snode.current{animation:pulse 2s infinite}
+/* ── レベルカード ── */
+.lic{background:var(--bg2);border-radius:14px;border:1px solid var(--bdr);overflow:hidden;margin-bottom:10px}
+.lic-hero{display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid var(--bdr)}
+.lic-emoji{font-size:32px;flex-shrink:0}
+.lic-lv{font-size:16px;font-weight:700}
+.lic-desc-sm{font-size:11px;color:var(--txt3);margin-top:3px}
+.lic-badge{border:1px solid;border-radius:12px;padding:2px 10px;font-size:12px;font-weight:700;margin-left:auto;white-space:nowrap;flex-shrink:0}
+.lic-body{padding:12px 14px}
+.lic-dots{display:flex;gap:6px;margin-bottom:10px}
+.lic-sdot{width:34px;height:34px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.lic-pbar-wrap{background:var(--sur2);border-radius:3px;height:5px;overflow:hidden;margin-bottom:12px}
+.lic-play{width:100%;border:none;border-radius:10px;padding:11px;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;color:#fff}.lic-play:hover{opacity:.88}
+
+/* ── ボタン スタイリッシュ版 ── */
+.nav-btn{background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.45);border-radius:10px;color:var(--viol);padding:8px 20px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:700;transition:all .2s;box-shadow:0 2px 8px rgba(124,58,237,.2)}
+.nav-btn:hover:not(:disabled){background:rgba(124,58,237,.25);transform:translateY(-1px)}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed}
+.back-btn{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.4);border-radius:10px;color:var(--viol);padding:8px 14px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:700;transition:all .2s}
+.back-btn:hover{background:rgba(124,58,237,.22)}
+.bsm{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.4);border-radius:10px;color:var(--viol);padding:7px 12px;cursor:pointer;font-size:12px;white-space:nowrap;font-family:inherit;font-weight:700;transition:all .2s}
+.bsm:hover{background:rgba(124,58,237,.22)}
+.hunt-skip-btn{flex:1;border:1px solid rgba(59,130,246,.5);border-radius:10px;padding:10px 8px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;color:#93c5fd;background:rgba(59,130,246,.12);box-shadow:0 2px 10px rgba(59,130,246,.2);transition:all .2s}
+.hunt-skip-btn:hover{background:rgba(59,130,246,.22);transform:translateY(-1px)}
+.hunt-give-btn{flex:1;border:1px solid rgba(239,68,68,.45);border-radius:10px;padding:10px 8px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;color:var(--redl);background:rgba(239,68,68,.1);box-shadow:0 2px 10px rgba(239,68,68,.15);transition:all .2s}
+.hunt-give-btn:hover{background:rgba(239,68,68,.2);transform:translateY(-1px)}
+
+
+/* ── MODAL BASE CSS ── */
+#cmod{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;align-items:flex-start;justify-content:center;z-index:210;padding:20px;overflow-y:auto}
+#wmod{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;z-index:320;padding:20px}
+#voc{position:fixed;inset:0;background:rgba(0,0,0,.96);display:none;flex-direction:column;z-index:280}
+#cmod.open,#wmod.open{display:flex}#voc.open{display:flex;flex-direction:column}
+
+.fwchips{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+
+.cr-sep{font-size:9px;color:var(--txt3);opacity:.5;flex-shrink:0;margin:0 2px}
+
+/* hunt-card: デフォルト非表示、.active で表示 */
+.hunt-card{display:none;background:linear-gradient(135deg,rgba(59,130,246,.18),rgba(124,58,237,.12));border:1px solid rgba(59,130,246,.45);border-radius:14px;padding:16px;text-align:center;margin-bottom:7px;min-height:100px}
+.hunt-card.active{display:block!important}
+.hunt-sublabel{font-size:10px;color:#94a3b8;letter-spacing:1px;margin-bottom:8px;display:block}
+.hunt-clue-word{font-size:26px;font-weight:700;color:#e2e8f0!important;margin-bottom:10px;line-height:1.3;display:block;min-height:36px}
+.hunt-meta{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.hunt-chars-badge{background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.4);border-radius:10px;padding:3px 12px;font-size:11px;color:#93c5fd;font-weight:600}
+.hunt-prog-txt{font-size:12px;color:#94a3b8}
+.hunt-hint-txt{font-size:11px;color:#94a3b8;margin-top:8px;display:none}
+.hunt-row{display:flex;gap:6px;margin-bottom:7px}
 </style>
 </head>
 <body>
@@ -250,9 +181,8 @@ html,body{height:100%;background:var(--bg);color:var(--txt);
   </div>
   <div class="ls-subtitle">JLPT N5 → N1 レベルを選んで冒険しよう</div>
 
-  <div class="walk-area" id="level-walk">
+  <div id="level-walk">
     <div class="walk-path" id="level-path"></div>
-    <div class="walk-char idle" id="level-char">🧑‍🎓</div>
   </div>
 
   <div id="level-info-card">
@@ -285,9 +215,8 @@ html,body{height:100%;background:var(--bg);color:var(--txt);
   </div>
   <div class="ss-title" id="ss-title"></div>
 
-  <div class="stage-walk-area" id="stage-walk">
+  <div id="stage-walk">
     <div class="stage-path" id="stage-path"></div>
-    <div class="walk-char idle" id="stage-char">🧑‍🎓</div>
   </div>
 
   <div id="stage-info-card"><!-- JS --></div>
@@ -299,7 +228,7 @@ html,body{height:100%;background:var(--bg);color:var(--txt);
 </div>
 
 <!-- ═══ GAME SCREEN ═══ -->
-<div id="game-screen" class="screen">
+<div id="game-screen" class="screen" style="overflow-y:auto;max-height:100vh">
   <div class="ghdr">
     <button class="bsm" onclick="backToStageSelect()">← Map</button>
     <div style="flex:1;min-width:0">
@@ -316,15 +245,33 @@ html,body{height:100%;background:var(--bg);color:var(--txt);
     </div>
     <div style="font-size:10px;color:var(--txt3)" id="pc"></div>
   </div>
+  <!-- 英語モードモード クルーカード -->
+  <div class="hunt-card" id="hunt-card">
+    <div class="hunt-sublabel">🔤 英語モード — この日本語熟語を探せ！</div>
+    <div class="hunt-clue-word" id="hunt-clue-word"></div>
+    <div class="hunt-meta">
+      <span class="hunt-chars-badge" id="hunt-chars"></span>
+      <span class="hunt-prog-txt" id="hunt-prog"></span>
+    </div>
+    <div class="hunt-hint-txt" id="hunt-hint"></div>
+  </div>
+  <!-- 通常モード入力表示 -->
   <div class="wdisp" id="wd"><span class="ht">漢字を直線でなぞって単語を作ろう</span></div>
   <div id="grid-area"></div>
   <div id="clear-banner" class="clear-banner">✓ クリア済み — 言葉の位置を確認できます</div>
-  <div class="arow">
-    <button class="ab hb" id="hbtn" onclick="doHint()">💡 ヒント <span style="font-size:10px;opacity:.7" id="hleft">(3回)</span></button>
-    <button class="ab finb" id="finbtn" onclick="doFinish()" disabled>🎌 終了</button>
+  <!-- 通常モードボタン -->
+  <div id="normal-btns">
+    <div class="arow" style="gap:8px">
+      <button class="ab hb" id="hbtn" onclick="doHint()">💡 ヒント<span id="hleft" style="font-size:10px;margin-left:4px;opacity:.6">(3回)</span></button>
+      <button class="ab gb" id="gubtn" onclick="doGiveUp()">🏳 ギブアップ</button>
+    </div>
   </div>
-  <div style="margin-bottom:7px">
-    <button class="ab gb" id="gubtn" onclick="doGiveUp()" style="width:100%;font-size:11px;padding:6px">🏳 ギブアップ（残りの言葉を見る）</button>
+  <!-- 英語モードボタン -->
+  <div id="hunt-btns" style="display:none">
+    <div class="hunt-row">
+      <button class="hunt-skip-btn" onclick="huntSkip()">💨 スキップ</button>
+      <button class="hunt-give-btn" onclick="huntGiveUp()">🏳 モード終了</button>
+    </div>
   </div>
   <div id="fbkarea"></div>
   <div class="fwrap" id="fwrap" style="display:none">
@@ -377,7 +324,7 @@ html,body{height:100%;background:var(--bg);color:var(--txt);
     </div>
     <div class="cbtns" style="gap:5px;flex-wrap:wrap">
       <button class="cmap" style="font-size:11px;padding:8px 10px" onclick="returnToGrid()">🔍 グリッドを見る</button>
-      <button class="cmap" style="font-size:11px;padding:8px 10px" onclick="backToStageSelect();document.getElementById('cmod').classList.remove('open')">🗺 Map</button>
+      <button class="cmap" style="font-size:11px;padding:8px 10px" onclick="backToStageSelect();closeModal('cmod')">🗺 Map</button>
       <button class="cmap" style="font-size:11px;padding:8px 10px;color:var(--ambl);border-color:rgba(245,158,11,.3)" onclick="openVocFromComplete()">📚</button>
       <button class="cnxt" style="font-size:12px;padding:8px 12px" id="cnxt" onclick="goNext()">次へ →</button>
     </div>
@@ -422,6 +369,163 @@ const STAGES=[
   {id:25,level:'N1',name:'漢字神',emoji:'🏯',cw:7},
 ];
 const DIRS=[[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+
+// ════ 日本語意味辞書（意味クイズ用） ════
+const JA_MEANINGS={
+'日本':'東アジアの島国','学校':'勉強する場所','電車':'線路を走る乗り物',
+'天気':'晴れや雨など空の状態','先生':'人に何かを教える人','男女':'男と女のこと',
+'父母':'お父さんとお母さん','山川':'山と川のこと','上下':'上と下のこと',
+'左右':'左と右のこと','人口':'そこに住む人の数','東西':'東と西のこと',
+'南北':'南と北のこと','大小':'大きいと小さいこと','前後':'前と後ろのこと',
+'国語':'自分の国の言葉','体力':'体の強さ・持久力','半年':'６ヶ月のこと',
+'年月':'長い時間のこと','半分':'２つに分けた一方','百万':'100万のこと',
+'千万':'1000万のこと','百円':'硬貨の一種','千円':'千円札のこと',
+'大人':'成長した人、子供でない人','大学':'高等教育の学校','学生':'学校で勉強する人',
+'電気':'家電や照明を動かす力','気分':'今の気持ちや体の調子','人気':'多くの人に好かれること',
+'本気':'真剣な気持ち','上手':'うまくできること','下手':'うまくできないこと',
+'右手':'右のほうの手','左手':'左のほうの手','手本':'まねするお手本',
+'山道':'山の中の道','水道':'家に水を届ける仕組み','電力':'電気のエネルギー',
+'気力':'やる気、精神的な力','学力':'勉強の力や知識量','女子':'女の子・女性',
+'男子':'男の子・男性','父子':'父親と子ども','母子':'母親と子ども',
+'天下':'世の中全体のこと','月日':'時間が過ぎること','本心':'本当の気持ち',
+'友人':'友達のこと','日本語':'日本で話される言語','中学':'小学校の次の学校',
+'中心':'真ん中のこと','中国':'日本の隣の大きな国','国道':'国が管理する道路',
+'先月':'今月の一つ前の月','学年':'学校での学年・グレード','小学':'子が最初に通う学校',
+'手足':'手と足のこと','火山':'噴火する山','水田':'稲を育てる田んぼ','手口':'やり方・方法',
+'会社':'仕事をする組織','社員':'会社で働く人','会員':'グループのメンバー',
+'店員':'お店で働く人','店長':'お店の責任者','社長':'会社のトップ',
+'入口':'入るための場所','出口':'出るための場所','入社':'会社で働き始めること',
+'帰国':'自分の国に帰ること','入学':'学校に入ること','春夏':'春と夏のこと',
+'秋冬':'秋と冬のこと','朝昼':'朝と昼のこと','来週':'次の週',
+'毎週':'毎週のこと','毎朝':'毎日の朝のこと','毎年':'毎年のこと',
+'毎日':'毎日のこと','来年':'次の年','朝食':'朝ごはん','夜食':'夜遅く食べるもの',
+'勉強':'学ぶこと・学習','思考':'考えること','有名':'多くの人に知られること',
+'明暗':'明るさと暗さ','白黒':'白と黒のこと','早速':'すぐに・急いで',
+'近所':'家の近くの場所','住所':'住んでいる場所の情報','長所':'得意なこと・良い点',
+'短所':'苦手なこと・弱い点','長短':'長短や良し悪し','売買':'売り買いすること',
+'飲食':'飲んだり食べたりすること','広大':'とても広いこと','重大':'とても大切なこと',
+'数学':'数や計算を学ぶ学問','新人':'新しく入ってきた人','強大':'強くて大きいこと',
+'毎月':'毎月のこと','近年':'最近の数年','新年':'新しい年・お正月',
+'明日':'今日の次の日','朝日':'朝の太陽','昼食':'お昼ごはん',
+'変化':'変わること','以上':'それより上のこと','以下':'それより下のこと',
+'以前':'前の時期','以後':'その後の時期','基本':'一番大切な基礎',
+'感動':'心が強く動かされること','感覚':'感じること・センス','記録':'データとして残すこと',
+'記念':'大事なことを記すこと','特別':'他と違う・普通でない','特産':'その地域特有のもの',
+'発展':'成長して良くなること','発見':'新しいものを見つけること','練習':'繰り返して上手になること',
+'専門':'特別に詳しい分野','改革':'古いものを新しく変えること','案内':'道や情報を教えること',
+'向上':'より良くなること','反省':'自分の行動を振り返ること','共同':'みんなで一緒にすること',
+'低下':'下がること・悪くなること','格差':'差が広がること','化学':'物質を研究する学問',
+'続行':'続けること','設定':'決めること・準備','盛大':'立派で大規模なこと',
+'増加':'数が増えること','拡大':'広がること・大きくなること','縮小':'小さくすること',
+'援助':'助けること・支援','採用':'選んで使うこと','破壊':'壊すこと',
+'症状':'病気のサイン','疑問':'疑うこと・わからないこと','暴力':'力で傷つけること',
+'炎上':'燃え上がること','脱出':'逃げること','緊張':'心と体が固くなること',
+'絶対':'必ず・例外なく','転落':'落ちること','鉄道':'電車の路線',
+'銀行':'お金を預ける場所','恋愛':'好きな人を愛すること','幸運':'運が良いこと',
+'危機':'大変な状況','増大':'大きく増えること',
+'哲学':'人生や世界を深く考える学問','壮大':'規模が大きくて立派なこと',
+'廉価':'値段が安いこと','憤慨':'とても怒ること','摂取':'体に取り入れること',
+'渇望':'強く望むこと','盲点':'気づいていない弱点','粛清':'組織から排除すること',
+'緻密':'細かくて丁寧なこと','錯覚':'間違えて感じること','衷心':'心の底から',
+};
+
+
+// ── 日本語意味辞書（意味クイズ用）──
+const MJ={
+  '日本':'東アジアにある島国',
+  '学校':'生徒が勉強する場所',
+  '電車':'電気で走る列車',
+  '天気':'晴れや雨など空の状態',
+  '先生':'何かを教える人',
+  '男女':'男と女のこと',
+  '父母':'父と母・両親',
+  '山川':'山と川',
+  '上下':'上と下の方向',
+  '左右':'左と右の方向',
+  '人口':'ある地域に住む人の数',
+  '東西':'東と西の方向',
+  '南北':'南と北の方向',
+  '大小':'大きいことと小さいこと',
+  '前後':'前と後ろの方向',
+  '国語':'日本語・自国の言葉',
+  '体力':'体を動かす力',
+  '半年':'一年の半分・六ヶ月',
+  '年月':'年と月・長い時間',
+  '半分':'全体の二分の一',
+  '百万':'100の万倍の数',
+  '千万':'1000の万倍の数',
+  '百円':'100という金額',
+  '千円':'1000という金額',
+  '大人':'成長した人・おとな',
+  '大学':'高校の次に進む学校',
+  '学生':'学校で勉強する人',
+  '電気':'ライトや機器を動かすエネルギー',
+  '気分':'今の心の状態・気持ち',
+  '人気':'多くの人に好かれること',
+  '本気':'まじめに取り組む気持ち',
+  '上手':'あることが得意なこと',
+  '下手':'あることが苦手なこと',
+  '右手':'体の右側の手',
+  '左手':'体の左側の手',
+  '手本':'まねをするお手本',
+  '山道':'山の中を通る道',
+  '水道':'水を届ける設備',
+  '電力':'電気のエネルギー',
+  '気力':'何かをしようという意欲',
+  '学力':'勉強して身につけた能力',
+  '女子':'女の子・女性',
+  '男子':'男の子・男性',
+  '父子':'父と子の関係',
+  '母子':'母と子の関係',
+  '天下':'世界全体・この世のすべて',
+  '月日':'月と日・時間の流れ',
+  '本心':'本当の気持ち・本音',
+  '友人':'仲の良い人・友達',
+  '日本語':'日本で話されている言語',
+  '中学':'小学校の次の学校',
+  '中心':'真ん中の部分',
+  '中国':'アジアにある大きな国',
+  '国道':'国が管理する道路',
+  '先月':'今月の一つ前の月',
+  '学年':'学校での学習の年次',
+  '手足':'手と足のこと',
+  '火山':'溶岩が出てくる山',
+  '水田':'稲を育てる水を張った田んぼ',
+  '手口':'ある行いのやり方・方法',
+  '会社':'事業を行う組織',
+  '社員':'会社で働く人',
+  '店員':'お店で働く人',
+  '入口':'中に入るための開口部',
+  '出口':'外に出るための開口部',
+  '春夏':'春と夏の季節',
+  '秋冬':'秋と冬の季節',
+  '毎日':'一日も欠かさずに',
+  '来年':'今年の次の年',
+  '朝食':'朝に食べる食事',
+  '夜食':'夜に食べる食事',
+  '勉強':'知識を学ぶこと',
+  '有名':'多くの人に知られていること',
+  '近所':'家の近くの場所',
+  '住所':'自分が住んでいる場所の表記',
+  '長所':'優れている点・得意なこと',
+  '短所':'劣っている点・苦手なこと',
+  '数学':'数や計算を研究する学問',
+  '変化':'様子や状態が変わること',
+  '以上':'ある基準より上または同じ',
+  '以下':'ある基準より下または同じ',
+  '感動':'心が深く動かされること',
+  '記念':'大切な出来事を思い出すこと',
+  '発見':'今まで知らなかったことを見つけること',
+  '練習':'上手になるために繰り返すこと',
+  '増加':'数や量が増えること',
+  '危機':'危険な状況・ピンチ',
+  '緊張':'心や体が引き締まった状態',
+  '絶対':'例外なく・必ず',
+  '鉄道':'鉄のレールの上を走る交通機関',
+  '銀行':'お金を預けたり借りたりする場所',
+};
+
+
 const WL={
   N5:[{w:'日本',r:'にほん',m:'Japan'},{w:'学校',r:'がっこう',m:'school'},{w:'電車',r:'でんしゃ',m:'train'},{w:'天気',r:'てんき',m:'weather'},{w:'先生',r:'せんせい',m:'teacher'},{w:'男女',r:'だんじょ',m:'men and women'},{w:'父母',r:'ふぼ',m:'parents'},{w:'山川',r:'やまかわ',m:'mountains and rivers'},{w:'上下',r:'じょうげ',m:'up and down'},{w:'左右',r:'さゆう',m:'left and right'},{w:'人口',r:'じんこう',m:'population'},{w:'東西',r:'とうざい',m:'east and west'},{w:'南北',r:'なんぼく',m:'north and south'},{w:'大小',r:'だいしょう',m:'large and small'},{w:'前後',r:'ぜんご',m:'front and back'},{w:'国語',r:'こくご',m:'national language'},{w:'体力',r:'たいりょく',m:'physical strength'},{w:'半年',r:'はんとし',m:'half a year'},{w:'年月',r:'ねんげつ',m:'years and months'},{w:'半分',r:'はんぶん',m:'half'},{w:'百万',r:'ひゃくまん',m:'one million'},{w:'千万',r:'せんまん',m:'ten million'},{w:'百円',r:'ひゃくえん',m:'100 yen'},{w:'千円',r:'せんえん',m:'1000 yen'},{w:'大人',r:'おとな',m:'adult'},{w:'大学',r:'だいがく',m:'university'},{w:'学生',r:'がくせい',m:'student'},{w:'電気',r:'でんき',m:'electricity'},{w:'気分',r:'きぶん',m:'feeling'},{w:'人気',r:'にんき',m:'popularity'},{w:'本気',r:'ほんき',m:'seriousness'},{w:'上手',r:'じょうず',m:'skilled'},{w:'下手',r:'へた',m:'unskilled'},{w:'右手',r:'みぎて',m:'right hand'},{w:'左手',r:'ひだりて',m:'left hand'},{w:'手本',r:'てほん',m:'model, example'},{w:'山道',r:'やまみち',m:'mountain path'},{w:'水道',r:'すいどう',m:'water supply'},{w:'電力',r:'でんりょく',m:'electric power'},{w:'気力',r:'きりょく',m:'willpower'},{w:'学力',r:'がくりょく',m:'academic ability'},{w:'女子',r:'じょし',m:'girl, female'},{w:'男子',r:'だんし',m:'boy, male'},{w:'父子',r:'ふし',m:'father and child'},{w:'母子',r:'ぼし',m:'mother and child'},{w:'天下',r:'てんか',m:'the whole world'},{w:'月日',r:'つきひ',m:'days and months'},{w:'本心',r:'ほんしん',m:'true feelings'},{w:'友人',r:'ゆうじん',m:'friend'},{w:'日本語',r:'にほんご',m:'Japanese language'},{w:'中学',r:'ちゅうがく',m:'middle school'},{w:'中心',r:'ちゅうしん',m:'center'},{w:'中国',r:'ちゅうごく',m:'China'},{w:'国道',r:'こくどう',m:'national road'},{w:'先月',r:'せんげつ',m:'last month'},{w:'学年',r:'がくねん',m:'school year'},{w:'手足',r:'てあし',m:'hands and feet'},{w:'火山',r:'かざん',m:'volcano'},{w:'水田',r:'すいでん',m:'paddy field'},{w:'手口',r:'てぐち',m:'method, trick'}],
   N4:[{w:'会社',r:'かいしゃ',m:'company'},{w:'社員',r:'しゃいん',m:'employee'},{w:'会員',r:'かいいん',m:'member'},{w:'店員',r:'てんいん',m:'clerk'},{w:'店長',r:'てんちょう',m:'store manager'},{w:'社長',r:'しゃちょう',m:'president'},{w:'入口',r:'いりぐち',m:'entrance'},{w:'出口',r:'でぐち',m:'exit'},{w:'入社',r:'にゅうしゃ',m:'joining a company'},{w:'帰国',r:'きこく',m:'returning home'},{w:'入学',r:'にゅうがく',m:'entering school'},{w:'春夏',r:'しゅんか',m:'spring and summer'},{w:'秋冬',r:'しゅうとう',m:'autumn and winter'},{w:'朝昼',r:'あさひる',m:'morning and noon'},{w:'来週',r:'らいしゅう',m:'next week'},{w:'毎週',r:'まいしゅう',m:'every week'},{w:'毎朝',r:'まいあさ',m:'every morning'},{w:'毎年',r:'まいとし',m:'every year'},{w:'毎日',r:'まいにち',m:'every day'},{w:'来年',r:'らいねん',m:'next year'},{w:'朝食',r:'ちょうしょく',m:'breakfast'},{w:'夜食',r:'やしょく',m:'late night snack'},{w:'勉強',r:'べんきょう',m:'studying'},{w:'思考',r:'しこう',m:'thinking'},{w:'有名',r:'ゆうめい',m:'famous'},{w:'明暗',r:'めいあん',m:'light and dark'},{w:'白黒',r:'しろくろ',m:'black and white'},{w:'早速',r:'さっそく',m:'immediately'},{w:'近所',r:'きんじょ',m:'neighborhood'},{w:'住所',r:'じゅうしょ',m:'address'},{w:'長所',r:'ちょうしょ',m:'strong point'},{w:'短所',r:'たんしょ',m:'weak point'},{w:'長短',r:'ちょうたん',m:'length; pros and cons'},{w:'売買',r:'ばいばい',m:'buying and selling'},{w:'飲食',r:'いんしょく',m:'food and drink'},{w:'広大',r:'こうだい',m:'vast'},{w:'重大',r:'じゅうだい',m:'serious'},{w:'数学',r:'すうがく',m:'mathematics'},{w:'新人',r:'しんじん',m:'newcomer'},{w:'強大',r:'きょうだい',m:'powerful'},{w:'毎月',r:'まいつき',m:'every month'},{w:'近年',r:'きんねん',m:'recent years'},{w:'新年',r:'しんねん',m:'new year'},{w:'明日',r:'あした',m:'tomorrow'},{w:'朝日',r:'あさひ',m:'morning sun'},{w:'昼食',r:'ちゅうしょく',m:'lunch'}],
@@ -444,6 +548,10 @@ let lvlWalking=false,stgWalking=false;
 let selectedLevel=null;
 let cStage=null,G=null,kWords=[],fWords=[],totW=0;
 let sel=[],selDir=null,isDrag=false,isVal=false;
+// 英語モードモード
+let huntMode=false,huntWords=[],huntIdx=0;
+let huntScore={correct:0,skipped:0};
+let huntHintTimer=null;
 let hLeft=3,hTimer=null,fbkTimer=null,curW=null,givenUp=false;
 
 // ════════════════════════════════════════════
@@ -499,8 +607,17 @@ function sfx(type){
     if(type==='ok'){
       [[523.25,0],[659.25,.1],[783.99,.2]].forEach(([f,d])=>_note(f,now+d,.45,.18));
     }else if(type==='ng'){
-      _note(220,now,.08,.14,'sawtooth');
-      _note(140,now+.07,.16,.14,'sawtooth');
+      // 柔らかい下降ブザー
+      try{
+        const o=AC.createOscillator(),g=AC.createGain();
+        o.connect(g);g.connect(AC.destination);
+        o.type='sine';
+        o.frequency.setValueAtTime(380,now);
+        o.frequency.exponentialRampToValueAtTime(160,now+0.3);
+        g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(0.15,now+0.03);
+        g.gain.setValueAtTime(0.15,now+0.22);g.gain.exponentialRampToValueAtTime(0.001,now+0.35);
+        o.start(now);o.stop(now+0.38);
+      }catch(e){}
     }else if(type==='clear'){
       [523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=>_note(f,now+i*.09,.6,.16));
     }
@@ -530,87 +647,100 @@ function initLevelScreen(){
 
 function renderLevelMap(){
   const path=document.getElementById('level-path');
+  if(!path)return;
   path.innerHTML='';
+  // コンテナをインラインスタイルで設定
+  path.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:52px 4px 8px;position:relative;margin-bottom:12px';
+
   LEVELS.forEach((lv,idx)=>{
-    const lc=LC[lv];
+    const lc=LC[lv];const info=LEVEL_INFO[lv];
     const unlocked=lvlUnlocked(idx);
-    const stages=lvlStages(lv);
-    const done=stages.filter(s=>prog.c.includes(s.id)).length;
-    const isCurrent=idx===lvlCharPos;
-    const node=document.createElement('button');
-    node.className='wnode'+(unlocked?(isCurrent?' current':''):' locked');
-    node.style.borderColor=unlocked?(isCurrent?lc:lc+'70'):'#1e2d4a';
-    node.style.color=unlocked?lc:'#2d3748';
-    if(!unlocked)node.disabled=true;
-    node.innerHTML=`<span class="wn-label">${lv}</span><span class="wn-prog">${unlocked?done+'/5':'🔒'}</span>`;
-    node.onclick=()=>clickLevel(idx);
-    path.appendChild(node);
-    if(idx<4){const line=document.createElement('div');line.style.cssText='flex:1;height:3px;background:var(--bdr2);border-radius:2px';path.appendChild(line);}
+    const done=lvlStages(lv).filter(st=>prog.c.includes(st.id)).length;
+    const isCur=idx===lvlCharPos;
+
+    const wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;flex-direction:column;align-items:center;flex:1;position:relative;z-index:2';
+
+    // キャラ（現在位置のみ）
+    const charDiv=document.createElement('div');
+    charDiv.style.cssText='height:30px;display:flex;align-items:flex-end;justify-content:center;position:absolute;top:-36px;left:0;right:0;font-size:22px;pointer-events:none';
+    charDiv.textContent=isCur?'🧑‍🎓':'';
+    wrap.appendChild(charDiv);
+
+    // ノードボタン
+    const btn=document.createElement('button');
+    const bc=unlocked?(isCur?lc:lc+'99'):'#1e2d4a';
+    const bg=unlocked&&isCur?lc+'22':'#080d1e';
+    const col=unlocked?lc:'#334155';
+    const shadow=isCur?`0 0 16px ${lc}88`:'none';
+    const anim=isCur?'pulse 2s infinite':'none';
+    btn.style.cssText=`width:72px;height:72px;border-radius:50%;border:2px solid ${bc};display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:${unlocked?'pointer':'not-allowed'};background:${bg};color:${col};font-family:inherit;padding:0;box-shadow:${shadow};animation:${anim};transition:all .2s;opacity:${unlocked?1:.35}`;
+    btn.disabled=!unlocked;
+    btn.innerHTML=`<span style="font-size:22px;line-height:1">${unlocked?info.emoji:'🔒'}</span><span style="font-size:11px;font-weight:700;margin-top:3px;line-height:1">${lv}</span><span style="font-size:9px;opacity:.7;line-height:1;margin-top:1px">${unlocked?done+'/5':''}</span>`;
+    if(unlocked)btn.onclick=()=>clickLevel(idx);
+    wrap.appendChild(btn);
+    path.appendChild(wrap);
+
+    // コネクタライン（最後以外）
+    if(idx<4){
+      const line=document.createElement('div');
+      line.style.cssText='flex:1;height:3px;background:#263352;border-radius:2px;z-index:1;margin-bottom:0;min-width:8px';
+      path.appendChild(line);
+    }
   });
-  posLevelChar(lvlCharPos,false);
-  renderLevelCard(lvlCharPos);
-}
-
-function posLevelChar(idx,anim){
-  const char=document.getElementById('level-char');
-  const nodes=document.querySelectorAll('#level-path .wnode');
-  if(!nodes[idx])return;
-  const area=document.getElementById('level-walk');
-  const ar=area.getBoundingClientRect(),nr=nodes[idx].getBoundingClientRect();
-  const left=nr.left-ar.left+nr.width/2-11;
-  char.style.left=left+'px';
-  if(!anim){char.style.transition='none';requestAnimationFrame(()=>{requestAnimationFrame(()=>{char.style.transition='left .2s ease-out';});});}
-}
-
-async function clickLevel(idx){
-  if(lvlWalking)return;
-  if(!lvlUnlocked(idx)){showToast('🔒 前のレベルをクリアして解放しよう！');return;}
-  if(idx===lvlCharPos){enterLevel(idx);return;}
-  lvlWalking=true;
-  const char=document.getElementById('level-char');
-  char.classList.remove('idle');char.classList.add('walking');
-  const dir=idx>lvlCharPos?1:-1;
-  while(lvlCharPos!==idx){
-    lvlCharPos+=dir;
-    posLevelChar(lvlCharPos,true);
-    await new Promise(r=>setTimeout(r,200));
-  }
-  char.classList.remove('walking');char.classList.add('idle');
-  lvlWalking=false;
-  renderLevelMap();
   renderLevelCard(lvlCharPos);
 }
 
 function renderLevelCard(idx){
-  const lv=LEVELS[idx];
-  const info=LEVEL_INFO[lv];
-  const lc=LC[lv];
-  const unlocked=lvlUnlocked(idx);
-  const stages=lvlStages(lv);
+  const lv=LEVELS[idx];const info=LEVEL_INFO[lv];const lc=LC[lv];
+  const unlocked=lvlUnlocked(idx);const stages=lvlStages(lv);
   const done=stages.filter(s=>prog.c.includes(s.id)).length;
   const card=document.getElementById('level-info-card');
   if(!unlocked){
     const prevLv=LEVELS[idx-1];
-    card.innerHTML=`<div class="info-card">
-      <div class="ic-header"><span class="ic-emoji">🔒</span><div><div class="ic-title">${lv} ${info.name}</div><div class="ic-sub">${info.desc}</div></div></div>
-      <div class="ic-locked">🔒 ${prevLv}レベルをクリアして解放</div>
-    </div>`;
-    return;
+    card.innerHTML=`<div class="lic">
+      <div class="lic-hero" style="background:linear-gradient(135deg,#0d1117,#1a2035)">
+        <span class="lic-emoji">🔒</span>
+        <div><div class="lic-lv" style="color:var(--txt3)">${lv} ${info.name}</div><div class="lic-desc-sm">${prevLv}レベルをクリアして解放</div></div>
+      </div>
+    </div>`;return;
   }
-  const dots=stages.map(s=>{
-    const st=stgStatus(s.id);
-    const col=st==='done'?lc:st==='unlocked'?lc+'60':'#1e2d4a';
-    return`<div class="ic-stage-dot" style="border-color:${col};color:${st==='done'?lc:'var(--txt3)'};background:${st==='done'?lc+'18':'transparent'}">${st==='done'?'✓':s.id}</div>`;
+  const pct=(done/5)*100;
+  const dots=stages.map(sc=>{
+    const st=stgStatus(sc.id);
+    const bg=st==='done'?lc:(st==='unlocked'?'transparent':'transparent');
+    const bc=st==='done'?lc:(st==='unlocked'?lc+'70':'#1e2d4a');
+    const col=st==='done'?'#fff':(st==='unlocked'?lc:'var(--txt3)');
+    return`<div class="lic-sdot" style="background:${bg};border-color:${bc};color:${col}">${st==='done'?'✓':sc.id}</div>`;
   }).join('');
-  card.innerHTML=`<div class="info-card" style="border-color:${lc}40">
-    <div class="ic-header">
-      <span class="ic-emoji">${info.emoji}</span>
-      <div><div class="ic-title" style="color:${lc}">${lv} ${info.name}</div><div class="ic-sub">${info.desc}</div></div>
-      <span class="lb" style="background:${lc}20;border-color:${lc}60;color:${lc};margin-left:auto">${done}/5クリア</span>
+  const btnLabel=done===5?'▶ もう一度チャレンジ':done>0?'▶ 続きをプレイ':'▶ スタート！';
+  card.innerHTML=`<div class="lic" style="border-color:${lc}40">
+    <div class="lic-hero" style="background:linear-gradient(135deg,${lc}20,${lc}08)">
+      <span class="lic-emoji">${info.emoji}</span>
+      <div style="flex:1;min-width:0">
+        <div class="lic-lv" style="color:${lc}">${lv} ${info.name}</div>
+        <div class="lic-desc-sm">${info.desc}</div>
+      </div>
+      <span class="lic-badge" style="color:${lc};border-color:${lc}50;background:${lc}15">${done}/5</span>
     </div>
-    <div class="ic-progress">${dots}</div>
-    <button class="ic-play-btn" onclick="enterLevel(${idx})">▶ このレベルへ進む</button>
+    <div class="lic-body">
+      <div class="lic-dots">${dots}</div>
+      <div class="lic-pbar-wrap"><div style="width:${pct}%;background:${lc};height:100%;border-radius:3px;transition:width .6s"></div></div>
+      <button class="lic-play" style="background:linear-gradient(135deg,${lc},${lc}bb)" onclick="enterLevel(${idx})">${btnLabel}</button>
+    </div>
   </div>`;
+}
+
+function clickLevel(idx){
+  if(!lvlUnlocked(idx)){showToast('🔒 前のレベルをクリアして解放しよう！');return;}
+  // キャラをアニメーション移動
+  const move=()=>{
+    if(lvlCharPos===idx){renderLevelMap();return;}
+    lvlCharPos+=(idx>lvlCharPos?1:-1);
+    renderLevelMap();
+    setTimeout(move,180);
+  };
+  move();
 }
 
 function enterLevel(idx){
@@ -620,6 +750,7 @@ function enterLevel(idx){
 }
 
 // ── STAGE SELECT ──
+function initStageSelect(){return initStageScreen();}
 function initStageScreen(){
   const lv=selectedLevel;
   const lc=LC[lv];
@@ -634,89 +765,85 @@ function initStageScreen(){
 }
 
 function renderStageMap(){
-  const lv=selectedLevel;
-  const lc=LC[lv];
-  const stages=lvlStages(lv);
   const path=document.getElementById('stage-path');
+  if(!path)return;
   path.innerHTML='';
+  path.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:52px 4px 8px;position:relative;margin-bottom:12px';
+
+  const stages=lvlStages(selectedLevel);
+  const lc=LC[selectedLevel];
+
   stages.forEach((sc,idx)=>{
-    const st=stgStatus(sc.id);
-    const isCur=idx===stgCharPos;
-    const locked=st==='locked';
-    const done=st==='done';
-    const node=document.createElement('button');
-    node.className='snode'+(locked?' locked':isCur?' current':'');
-    node.style.borderColor=done?'#d4a017':isCur?lc:locked?'#1e2d4a':lc+'60';
-    node.style.color=done?'#d4a017':isCur?lc:locked?'#2d3748':lc;
-    node.style.background=done?'#d4a01712':isCur?lc+'18':'var(--bg2)';
-    node.disabled=locked;
-    node.innerHTML=`<span class="sn-emoji">${done?'✓':locked?'🔒':sc.emoji}</span><span class="sn-num">S${sc.id}</span>`;
-    node.onclick=()=>clickStage(idx);
-    path.appendChild(node);
-    if(idx<4){const line=document.createElement('div');line.style.cssText='flex:1;height:3px;background:var(--bdr2);border-radius:2px';path.appendChild(line);}
+    const st=stgStatus(sc.id);const isCur=idx===stgCharPos;
+    const done=st==='done';const locked=st==='locked';
+    const bc=done?'#d4a017':isCur?lc:locked?'#1e2d4a':lc+'70';
+    const bg=done?'#d4a01722':isCur?lc+'22':'#080d1e';
+    const col=done?'#d4a017':isCur?lc:locked?'#334155':lc;
+
+    const wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;flex-direction:column;align-items:center;flex:1;position:relative;z-index:2';
+
+    const charDiv=document.createElement('div');
+    charDiv.style.cssText='height:28px;display:flex;align-items:flex-end;justify-content:center;position:absolute;top:-34px;left:0;right:0;font-size:20px;pointer-events:none';
+    charDiv.textContent=isCur?'🧑‍🎓':'';
+    wrap.appendChild(charDiv);
+
+    const btn=document.createElement('button');
+    btn.style.cssText=`width:56px;height:56px;border-radius:50%;border:2px solid ${bc};display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:${locked?'not-allowed':'pointer'};background:${bg};color:${col};font-family:inherit;padding:0;animation:${isCur?'pulse 2s infinite':'none'};transition:all .2s;opacity:${locked?.35:1}`;
+    btn.disabled=locked;
+    btn.innerHTML=`<span style="font-size:16px;line-height:1">${done?'✓':locked?'🔒':sc.emoji}</span><span style="font-size:8px;font-weight:700;margin-top:2px;line-height:1">${sc.name}</span>`;
+    if(!locked)btn.onclick=()=>clickStage(idx);
+    wrap.appendChild(btn);
+    path.appendChild(wrap);
+
+    if(idx<4){
+      const line=document.createElement('div');
+      line.style.cssText='flex:1;height:3px;background:#263352;border-radius:2px;z-index:1;min-width:6px';
+      path.appendChild(line);
+    }
   });
-  posStageChar(stgCharPos,false);
   renderStageCard(stgCharPos);
 }
 
-function posStageChar(idx,anim){
-  const char=document.getElementById('stage-char');
-  const nodes=document.querySelectorAll('#stage-path .snode');
-  if(!nodes[idx])return;
-  const area=document.getElementById('stage-walk');
-  const ar=area.getBoundingClientRect(),nr=nodes[idx].getBoundingClientRect();
-  const left=nr.left-ar.left+nr.width/2-11;
-  char.style.left=left+'px';
-  if(!anim){char.style.transition='none';requestAnimationFrame(()=>{requestAnimationFrame(()=>{char.style.transition='left .2s ease-out';});});}
-}
-
-async function clickStage(idx){
-  if(stgWalking)return;
-  const stages=lvlStages(selectedLevel);
-  if(stgStatus(stages[idx].id)==='locked'){showToast('🔒 まだ解放されていません');return;}
-  if(idx===stgCharPos){showStageCard(idx);return;}
-  stgWalking=true;
-  const char=document.getElementById('stage-char');
-  char.classList.remove('idle');char.classList.add('walking');
-  const dir=idx>stgCharPos?1:-1;
-  while(stgCharPos!==idx){
-    stgCharPos+=dir;
-    posStageChar(stgCharPos,true);
-    await new Promise(r=>setTimeout(r,180));
-  }
-  char.classList.remove('walking');char.classList.add('idle');
-  stgWalking=false;
-  renderStageMap();
-}
-
-function showStageCard(idx){renderStageCard(idx);}
-
 function renderStageCard(idx){
-  const stages=lvlStages(selectedLevel);
-  const sc=stages[idx];
-  const st=stgStatus(sc.id);
-  const lc=LC[sc.level];
-  const done=st==='done';
+  const stages=lvlStages(selectedLevel);const sc=stages[idx];
+  const st=stgStatus(sc.id);const lc=LC[sc.level];const done=st==='done';
   const card=document.getElementById('stage-info-card');
-  card.innerHTML=`<div class="stage-info-card" style="border-color:${lc}40">
-    <div class="sic-header">
+  const statusBadge=done
+    ?`<span style="background:rgba(212,160,23,.15);border:1px solid #d4a01770;color:#d4a017;border-radius:10px;padding:2px 9px;font-size:10px;font-weight:700">✓ クリア済み</span>`
+    :`<span style="background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.4);color:var(--viol);border-radius:10px;padding:2px 9px;font-size:10px;font-weight:700">挑戦中</span>`;
+  const btnLabel=done?'▶ もう一度プレイ':'▶ プレイ開始！';
+  card.innerHTML=`<div class="sic-card" style="border-color:${lc}40">
+    <div class="sic-hero" style="background:linear-gradient(135deg,${lc}18,${lc}08)">
       <span class="sic-emoji">${sc.emoji}</span>
-      <div>
-        <div class="sic-title">S${sc.id} ${sc.name}</div>
-        <div class="sic-goal">目標: ${sc.cw}語見つけよう</div>
+      <div style="flex:1;min-width:0">
+        <div class="sic-name-lg" style="color:${lc}">S${sc.id} ${sc.name}</div>
+        <div class="sic-goal-sm">3語以上で終了 / 目標 ${sc.cw}語</div>
       </div>
-      ${done?'<span style="color:#d4a017;font-size:20px;margin-left:auto">✓</span>':''}
+      ${statusBadge}
     </div>
-    <div class="sic-status">
-      ${done?`<span style="font-size:11px;color:var(--grn)">✓ クリア済み</span>`:''}
+    <div class="sic-body">
+      <button class="sic-play-lg" style="background:linear-gradient(135deg,${lc},${lc}bb)" onclick="beginStage(${sc.id})">${btnLabel}</button>
+      <div class="sic-mode-row">
+        <button class="sic-mode-btn sic-mode-en" onclick="beginQuiz(${sc.id},'en')">🔍 英語クイズ</button>
+        <button class="sic-mode-btn sic-mode-jp" onclick="beginQuiz(${sc.id},'jp')">📖 意味クイズ（上級）</button>
+      </div>
     </div>
-    <button class="sic-play" onclick="beginStage(${sc.id})">${done?'▶ もう一度':'▶ プレイ'}</button>
   </div>`;
-  // nav arrows
   document.getElementById('snav-prev').disabled=idx<=0;
   document.getElementById('snav-next').disabled=idx>=4||stgStatus(stages[Math.min(idx+1,4)].id)==='locked';
 }
 
+function clickStage(idx){
+  if(stgWalking)return;
+  const stages=lvlStages(selectedLevel);
+  if(stgStatus(stages[idx].id)==='locked'){showToast('🔒 まだ解放されていません');return;}
+  if(idx===stgCharPos){renderStageCard(stgCharPos);return;}
+  stgWalking=true;
+  const dir=idx>stgCharPos?1:-1;
+  const go=()=>{if(stgCharPos===idx){stgWalking=false;return;}stgCharPos+=dir;renderStageMap();setTimeout(go,170);};
+  setTimeout(go,0);
+}
 function stageMove(dir){
   const stages=lvlStages(selectedLevel);
   const next=stgCharPos+dir;
@@ -731,7 +858,7 @@ function showLevelSelect(){
 }
 
 function backToStageSelect(){
-  document.getElementById('cmod').classList.remove('open');
+  closeModal('cmod');
   showScreen('stage-screen');
   initStageScreen();
 }
@@ -741,8 +868,11 @@ function backToStageSelect(){
 // ════════════════════════════════════════════
 function buildGrid(stage){
   const p=pool(stage.level);
-  const wlist=cumWL(stage.level).filter(e=>e.w.split('').every(k=>p.includes(k)));
-  const shuffled=[...wlist].sort(()=>Math.random()-.5);
+  const curP=KP[stage.level]; // このレベルの漢字のみ
+  // 語の優先順位: このレベルのWL → 前レベルのWL
+  const thisLvWords=(WL[stage.level]||[]).filter(e=>e.w.split('').every(k=>p.includes(k))).sort(()=>Math.random()-.5);
+  const prevLvWords=LEVELS.slice(0,LEVELS.indexOf(stage.level)).flatMap(l=>WL[l]||[]).filter(e=>e.w.split('').every(k=>p.includes(k))).sort(()=>Math.random()-.5);
+  const shuffled=[...thisLvWords,...prevLvWords];
   const g=Array(5).fill(null).map(()=>Array(5).fill(null));
   const used=new Set();const placed=[];
   for(const entry of shuffled){
@@ -760,8 +890,19 @@ function buildGrid(stage){
     chosen.forEach(([nr,nc],i)=>{g[nr][nc]=kk[i];used.add(kk[i]);});
     placed.push({word:entry.w,reading:entry.r,meaning:entry.m,cells:chosen.map(([r,c])=>({r,c}))});
   }
-  const unused=p.filter(k=>!used.has(k)).sort(()=>Math.random()-.5);let ui=0;
-  for(let r=0;r<5;r++)for(let c=0;c<5;c++)if(g[r][c]===null){g[r][c]=unused[ui++]||p[Math.floor(Math.random()*p.length)];}
+  // フィラー: 80%→このレベル漢字、20%→前レベル漢字
+  const curUnused=curP.filter(k=>!used.has(k)).sort(()=>Math.random()-.5);
+  const otherUnused=p.filter(k=>!used.has(k)&&!curP.includes(k)).sort(()=>Math.random()-.5);
+  let ci=0,oi=0;
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++){
+    if(g[r][c]===null){
+      const useCur=Math.random()<0.82||oi>=otherUnused.length;
+      if(useCur&&ci<curUnused.length)g[r][c]=curUnused[ci++];
+      else if(oi<otherUnused.length)g[r][c]=otherUnused[oi++];
+      else if(ci<curUnused.length)g[r][c]=curUnused[ci++];
+      else g[r][c]=curP[Math.floor(Math.random()*curP.length)];
+    }
+  }
   return{grid:g,words:placed};
 }
 
@@ -801,13 +942,13 @@ async function getJishoDetail(word){
 // ════════════════════════════════════════════
 // GAME
 // ════════════════════════════════════════════
-async function beginStage(sid){
+async function beginStage(sid,quizMode=false){
   const sc=STAGES.find(s=>s.id===sid);if(!sc)return;
-  cStage=sc;G=null;kWords=[];fWords=[];totW=0;sel=[];selDir=null;isDrag=false;givenUp=false;hLeft=3;
+  cStage=sc;G=null;kWords=[];fWords=[];totW=0;sel=[];selDir=null;isDrag=false;givenUp=false;hLeft=3;huntMode=quizMode;
   showScreen('game-screen');
   const lc=LC[sc.level];
   document.getElementById('shdr').innerHTML=`<span style="font-size:15px">${sc.emoji}</span><span style="font-weight:700;font-size:14px">S${sc.id} ${sc.name}</span><span class="lb" style="background:${lc}20;border-color:${lc}60;color:${lc};font-size:9px">${sc.level}</span>`;
-  document.getElementById('sgoal').textContent=`3語以上で終了可能（目標: ${sc.cw}語）`;
+  document.getElementById('sgoal').textContent=`目標 ${sc.cw}語 / 全語発見でクリア！`;
   document.getElementById('pf').textContent='0';document.getElementById('pt').textContent='?';document.getElementById('pc').textContent='';
   document.getElementById('pfill').style.width='0%';document.getElementById('pfill').style.background=`linear-gradient(90deg,${lc},var(--grn))`;
   document.getElementById('fwrap').style.display='none';document.getElementById('fwchips').innerHTML='';document.getElementById('fbkarea').innerHTML='';
@@ -815,16 +956,22 @@ async function beginStage(sid){
   document.getElementById('hbtn').disabled=false;
   const _gu=document.getElementById('gubtn');
   _gu.disabled=false;_gu.style.display='';_gu.textContent='🏳 ギブアップ（残りの言葉を見る）';_gu.onclick=doGiveUp;
-  const _fin=document.getElementById('finbtn');
-  _fin.disabled=true;_fin.className='ab finb';_fin.textContent='🎌 終了';_fin.onclick=doFinish;
   document.getElementById('clear-banner').style.display='none';
   setWD('hint','漢字を直線でなぞって単語を作ろう');
+  // Hunt UI リセット
+  document.getElementById('hunt-card').classList.remove('active');
+  document.getElementById('normal-btns').style.display='';
+  document.getElementById('hunt-btns').style.display='none';
   document.getElementById('grid-area').innerHTML=`<div class="gload"><div class="bspin" style="border-color:${lc}"></div><div style="color:var(--txt3);font-size:12px">グリッドを生成中...</div></div>`;
   setTimeout(()=>{
     const res=buildGrid(sc);G=res.grid;kWords=res.words;totW=res.words.length;
     renderGrid();
-    document.getElementById('pt').textContent=totW>0?totW:'?';
-    if(totW>0)document.getElementById('pc').textContent=`目標:${sc.cw}語`;
+    if(huntMode){
+      setupHunt();
+    }else{
+      document.getElementById('pt').textContent=totW>0?totW:'?';
+      if(totW>0)document.getElementById('pc').textContent=`目標:${sc.cw}語`;
+    }
   },200);
 }
 function retryStage(){if(cStage)beginStage(cStage.id);}
@@ -879,6 +1026,32 @@ async function submit(){
   if(s.length<2||!G||isVal){setWD('hint','漢字を直線でなぞって単語を作ろう');return;}
   const word=s.map(({r,c})=>G[r][c]).join('').trim();
   if(!word||word.length<2){setWD('hint','漢字を直線でなぞって単語を作ろう');return;}
+  // ── 英語モードモード分岐 ──
+  if(huntMode){
+    if(huntIdx>=huntWords.length)return;
+    const target=huntWords[huntIdx];
+    if(word===target.word){
+      huntScore.correct++;sfx('ok');
+      fWords.push({...target,cells:s});ref();
+      const okMsgs=['🎉 素晴らしい！','⭐ 正解！ さすが！','✨ 完璧！','🔥 やった！','💫 正解！'];
+      showFbk('ok',word,target.reading,okMsgs[Math.floor(Math.random()*okMsgs.length)]);
+      setWD('hint','正解！');
+      huntIdx++;
+      setTimeout(()=>{showFbk('ok','','','');showHuntClue();},1300);
+    }else{
+      huntScore.wrong=(huntScore.wrong||0)+1;sfx('ng');
+      // ヒントを少し表示
+      const hint=document.getElementById('hunt-hint');
+      hint.textContent=`ヒント: ${target.word.length}文字の熟語です`;
+      hint.style.display='block';
+      if(huntHintTimer)clearTimeout(huntHintTimer);
+      huntHintTimer=setTimeout(()=>{hint.style.display='none';},3000);
+      const ngMsgs=['💪 もう一度！','🤔 惜しい！違うよ','😅 それじゃない！','🧠 よく考えて！'];
+      showFbk('err',word,null,ngMsgs[Math.floor(Math.random()*ngMsgs.length)]);
+    }
+    return;
+  }
+  // ── 通常モード ──
   if(fWords.some(w=>w.word===word)){showFbk('err',word,null,'すでに見つけています！');setWD('hint','漢字を直線でなぞって単語を作ろう');return;}
   const known=kWords.find(w=>w.word===word);
   if(known){accept({word,reading:known.reading,meaning:known.meaning,cells:s});return;}
@@ -889,30 +1062,25 @@ async function submit(){
   else{sfx('ng');showFbk('err',word,null,'単語として認識されませんでした');setWD('hint','漢字を直線でなぞって単語を作ろう');}
 }
 function accept(wd){
-  fWords.push(wd);ref();sfx('ok');showFbk('ok',wd.word,wd.reading,wd.meaning);setWD('hint','漢字を直線でなぞって単語を作ろう');
+  fWords.push(wd);ref();sfx('ok');const _oms=['🎉 見つけた！','⭐ 正解！','✨ いいね！','🔥 そこだ！'];
+  showFbk('ok',wd.word,wd.reading,_oms[Math.floor(Math.random()*_oms.length)]+' '+wd.meaning);setWD('hint','漢字を直線でなぞって単語を作ろう');
   updProg();addChip(wd);
-  updateFinBtn();
+  // 全語発見でパーフェクト自動クリア
+  if(!givenUp&&kWords.length>0&&kWords.every(w=>fWords.some(f=>f.word===w.word))){
+    prog={u:Math.max(prog.u,cStage.id+1),c:[...new Set([...prog.c,cStage.id])]};saveP();
+    setTimeout(()=>showComplete(false),700);
+  }
 }
 function updProg(){
   const found=fWords.length,total=Math.max(totW,found);
   document.getElementById('pfill').style.width=`${total>0?Math.min((found/total)*100,100):0}%`;
   document.getElementById('pf').textContent=found;document.getElementById('pt').textContent=total>0?total:'?';
   document.getElementById('pc').textContent=`目標:${cStage?.cw}語`;
-  updateFinBtn();
-}
-function updateFinBtn(){
-  const selfound=fWords.filter(w=>!w.gu).length;
-  const btn=document.getElementById('finbtn');if(!btn)return;
-  const MIN=3;
-  btn.disabled=selfound<MIN;
-  btn.className='ab finb'+(selfound>=cStage.cw?' goal':selfound>=MIN?' can':'');
-  if(selfound===MIN&&MIN<cStage.cw)showToast(`💡 ${MIN}語達成！終了ボタンが使えます`);
-  if(selfound===cStage.cw)showToast(`🎯 目標達成！いつでも終了できます`);
 }
 function addChip(wd){
   const wrap=document.getElementById('fwchips');const chip=document.createElement('div');
   chip.className=`chip ${wd.gu?'g':'n'}`;
-  chip.innerHTML=`<span class="cw">${wd.word}</span><span class="cr">${wd.reading||''}</span><span class="ccp" onclick="event.stopPropagation();cpWord('${wd.word}')">📋</span>`;
+  chip.innerHTML=`<span class="cw">${wd.word}</span><span class="cr-sep">·</span><span class="cr">${wd.reading||''}</span><span class="ccp" onclick="event.stopPropagation();cpWord('${wd.word}')">📋</span>`;
   chip.addEventListener('click',()=>openWM(wd));
   wrap.appendChild(chip);document.getElementById('fwrap').style.display='block';
 }
@@ -937,12 +1105,114 @@ function doHint(){
   if(hTimer)clearTimeout(hTimer);
   hTimer=setTimeout(()=>{cells.forEach(({r,c})=>{document.getElementById('kg')?.querySelector(`[data-r="${r}"][data-c="${c}"]`)?.classList.remove('hc');});ref();},3000);
 }
-function doFinish(){
-  const selfound=fWords.filter(w=>!w.gu).length;
-  if(selfound<3){showToast('あと'+(3-selfound)+'語見つけてから終了できます');return;}
-  prog={u:Math.max(prog.u,cStage.id+1),c:[...new Set([...prog.c,cStage.id])]};saveP();
-  showComplete(false);
+// ════════════════════════════════════════════
+// 英語モードモード
+// ════════════════════════════════════════════
+function beginQuiz(sid,mode='en'){
+  beginStage(sid,mode);
 }
+
+function setupHunt(){
+  // 意味のある語だけ抽出してシャッフル
+  huntWords=kWords.filter(w=>w.meaning&&w.meaning.trim()).sort(()=>Math.random()-.5);
+  huntIdx=0;huntScore={correct:0,skipped:0,wrong:0};
+  fWords=[];
+  // UI切り替え
+  document.getElementById('hunt-card').classList.add('active');
+  document.getElementById('wd').style.display='none';
+  document.getElementById('normal-btns').style.display='none';
+  document.getElementById('hunt-btns').style.display='';
+  document.getElementById('fwrap').style.display='none';
+  // 進捗表示を変更
+  document.getElementById('sgoal').textContent=huntMode==='jp'?'🈶 意味クイズ — 日本語の意味から探せ！':'🔤 英語クイズ — 英語の意味から探せ！';
+  // hunt-card のラベルも更新
+  const _sl=document.querySelector('#hunt-card .hunt-sublabel');
+  if(_sl)_sl.textContent=huntMode==='jp'?'🈶 日本語意味クイズ — ヒントから漢字を探せ！':'🔤 英語クイズ — この日本語熟語を探せ！';
+  document.getElementById('pc').textContent='';
+  if(huntWords.length===0){
+    document.getElementById('hunt-clue-word').textContent='語彙データが不足しています';
+    return;
+  }
+  // 日本語意味モードの場合、Jishoから日本語訳を事前取得
+  if(huntMode==='ja'){
+    document.getElementById('hunt-clue-word').textContent='日本語の意味を取得中...';
+    fetchJaMeanings(huntWords).then(()=>showHuntClue());
+  }else{
+    showHuntClue();
+  }
+}
+
+function showHuntClue(){
+  if(huntIdx>=huntWords.length){showHuntComplete();return;}
+  const w=huntWords[huntIdx];
+  const el=document.getElementById('hunt-clue-word');
+  let clueText='';
+  if(huntMode==='jp'){
+    // 意味クイズ: 日本語のみ（JA_MEANINGSを使用）
+    clueText=JA_MEANINGS[w.word]||`${w.reading}で書く漢字`;
+  }else{
+    // 英語モード
+    clueText=w.meaning.split(/[;,]/)[0].trim();
+  }
+  el.textContent=clueText||'（ヒントを取得中...）';
+  el.style.cssText=`font-size:${clueText.length>20?'18px':'24px'};font-weight:700;color:#e2e8f0;display:block;margin-bottom:10px;line-height:1.3`;
+  document.getElementById('hunt-chars').textContent=`${w.word.length}文字の熟語`;
+  document.getElementById('hunt-prog').textContent=`${huntIdx+1} / ${huntWords.length}問`;
+  document.getElementById('hunt-hint').style.display='none';
+  // 進捗バー更新
+  const pct=Math.round((huntScore.correct/huntWords.length)*100);
+  document.getElementById('pfill').style.width=pct+'%';
+  document.getElementById('pf').textContent=huntScore.correct;
+  document.getElementById('pt').textContent=huntWords.length;
+}
+
+function huntSkip(){
+  if(huntIdx>=huntWords.length)return;
+  huntScore.skipped++;
+  showToast(`「${huntWords[huntIdx].word}」をスキップ`);
+  huntIdx++;
+  showHuntClue();
+}
+
+function huntGiveUp(){
+  showHuntComplete();
+}
+
+function showHuntComplete(){
+  sfx('clear');
+  const total=huntWords.length;
+  const correct=huntScore.correct;
+  const skipped=huntScore.skipped;
+  const missed=total-correct-skipped;
+  document.getElementById('cemi').textContent=correct===total?'🏆':correct>total*0.7?'🎉':'💪';
+  document.getElementById('ctitle').textContent=huntMode==='jp'?`読みモード 完了！`:`英語モード 完了！`;
+  document.getElementById('ctitle').style.color='#60a5fa';
+  document.getElementById('csub').textContent=`${total}問中 ${correct}問正解！(スキップ:${skipped} 不正解:${missed})`;
+  document.getElementById('cword-count').textContent=`問題一覧 (${total}問)`;
+  const vocab=getVoc();
+  document.getElementById('cchips').innerHTML=huntWords.map(w=>{
+    const wasCorrect=fWords.some(f=>f.word===w.word);
+    const saved=vocab.some(v=>v.word===w.word);
+    const col=wasCorrect?'var(--grnl)':'var(--txt3)';
+    const icon=wasCorrect?'✓':'✗';
+    return`<div class="cword-row" onclick="openWMFromComplete('${w.word}')">
+      <span style="font-size:12px;margin-right:2px;color:${col}">${icon}</span>
+      <span class="cwrd" style="color:${col}">${w.word}</span>
+      <span class="crdr">${w.meaning.split(/[;,]/)[0].trim()}</span>
+      <button class="csavebtn${saved?' saved':''}" onclick="event.stopPropagation();saveFromComplete('${w.word}',this)">${saved?'✓':'💾'}</button>
+    </div>`;
+  }).join('');
+  document.getElementById('cmissed').style.display='none';
+  document.getElementById('cnxt').style.display='none';
+  openModal('cmod');
+  huntMode=false;
+  // UI戻す
+  document.getElementById('hunt-card').classList.remove('active');
+  document.getElementById('wd').style.display='';
+  document.getElementById('normal-btns').style.display='';
+  document.getElementById('hunt-btns').style.display='none';
+}
+
 function doGiveUp(){
   if(givenUp)return;if(!confirm('ギブアップしますか？残りの言葉が表示されます。'))return;
   givenUp=true;document.getElementById('gubtn').disabled=true;
@@ -966,7 +1236,7 @@ function showComplete(isGU){
   document.getElementById('cchips').innerHTML=fWords.map(w=>{
     const saved=vocab.some(v=>v.word===w.word);
     return`<div class="cword-row${w.gu?' g':''}" onclick="openWMFromComplete('${w.word}')">
-      <span class="cwrd">${w.word}</span><span class="crdr">${w.reading||''}</span>
+      <span class="cwrd">${w.word}</span><span style="font-size:9px;color:var(--txt3);margin:0 4px">·</span><span class="crdr">${w.reading||''}</span>
       <button class="csavebtn${saved?' saved':''}" onclick="event.stopPropagation();saveFromComplete('${w.word}',this)">${saved?'✓':'💾'}</button>
     </div>`;
   }).join('');
@@ -980,10 +1250,10 @@ function showComplete(isGU){
   }else{mEl.style.display='none';}
   const hasNext=cStage.id<25&&lvlStages(selectedLevel).some(s=>s.id===cStage.id+1)||STAGES.find(s=>s.id===cStage.id+1);
   document.getElementById('cnxt').style.display=cStage.id<25?'':'none';
-  document.getElementById('cmod').classList.add('open');
+  openModal('cmod');
 }
 function goNext(){
-  document.getElementById('cmod').classList.remove('open');
+  closeModal('cmod');
   const next=STAGES.find(s=>s.id===cStage.id+1);
   if(next){
     // 同レベルか次のレベルか
@@ -999,7 +1269,7 @@ function saveAllFound(){
   setVoc(vocab);showToast(cnt>0?`💾 ${cnt}語を保存しました`:'すでに全語保存済みです');
   document.querySelectorAll('.csavebtn').forEach(b=>{b.textContent='✓';b.classList.add('saved');});
 }
-function openVocFromComplete(){document.getElementById('cmod').classList.remove('open');openVoc();}
+function openVocFromComplete(){closeModal('cmod');openVoc();}
 
 // ════════════════════════════════════════════
 // WORD MODAL
@@ -1021,7 +1291,7 @@ async function openWM(wd){
   document.getElementById('wmsenses').innerHTML=`<div class="ldg"><span class="sp"></span>読み込み中...</div>`;
   document.getElementById('wmexs').innerHTML=`<div class="ldg"><span class="sp"></span>例文を検索中...</div>`;
   document.getElementById('wmextlinks').innerHTML='';
-  document.getElementById('wmod').classList.add('open');
+  openModal('wmod');
   const[details,examples]=await Promise.all([fetchWordFull(wd.word),fetchExamples(wd.word)]);
   if(details?.reading&&!wd.reading)document.getElementById('wmr').textContent=details.reading;
   let badges='';
@@ -1034,16 +1304,13 @@ async function openWM(wd){
   else{document.getElementById('wmexs').innerHTML=`<a class="ex-link" href="https://jisho.org/search/${encodeURIComponent(wd.word)}%23sentences" target="_blank" rel="noopener">Jisho.orgで例文を見る →</a>`;}
   document.getElementById('wmextlinks').innerHTML=`<a class="extlink" href="https://jisho.org/search/${encodeURIComponent(wd.word)}" target="_blank" rel="noopener">🔗 Jisho</a><a class="extlink" href="https://tatoeba.org/ja/sentences/search?from=jpn&to=eng&query=${encodeURIComponent(wd.word)}" target="_blank" rel="noopener">📚 例文</a><a class="extlink" href="https://dictionary.goo.ne.jp/word/${encodeURIComponent(wd.word)}/" target="_blank" rel="noopener">📘 goo辞書</a>`;
 }
-function closeWM(){document.getElementById('wmod').classList.remove('open');}
+function closeWM(){closeModal('wmod');}
 function returnToGrid(){
-  document.getElementById('cmod').classList.remove('open');
+  closeAllModals();
   showScreen('game-screen');
   document.getElementById('clear-banner').style.display='block';
-  // 終了ボタンを「もう一度終了」に変更（再クリア不要なので）
-  const finbtn=document.getElementById('finbtn');
-  if(finbtn){finbtn.disabled=false;finbtn.textContent='🗺 マップへ戻る';finbtn.onclick=()=>{backToStageSelect();};finbtn.className='ab can';}
-  const gubtn=document.getElementById('gubtn');
-  if(gubtn){gubtn.style.display='none';}
+  const _gubtn=document.getElementById('gubtn');
+  if(_gubtn){_gubtn.style.display='none';}
 }
 async function cpWord(word){try{await navigator.clipboard.writeText(word);}catch{const t=document.createElement('textarea');t.value=word;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);}showToast(`「${word}」をコピーしました`);}
 function cpCur(){if(curW)cpWord(curW.word);}
@@ -1060,8 +1327,8 @@ function saveVoc(wd,silent=false){
   setVoc(voc);showToast(`💾「${wd.word}」を単語帳に保存しました！`);
 }
 function delVoc(word){setVoc(getVoc().filter(w=>w.word!==word));renderVoc();showToast(`「${word}」を削除しました`);}
-function openVoc(){renderVoc();document.getElementById('voc').classList.add('open');}
-function closeVoc(){document.getElementById('voc').classList.remove('open');}
+function openVoc(){renderVoc();openModal('voc');}
+function closeVoc(){closeModal('voc');}
 function renderVoc(){
   const voc=getVoc();document.getElementById('vcnt').textContent=`(${voc.length}語)`;
   const body=document.getElementById('vbody');
@@ -1069,9 +1336,43 @@ function renderVoc(){
   const byLv={};voc.forEach(w=>{if(!byLv[w.level])byLv[w.level]=[];byLv[w.level].push(w);});
   body.innerHTML=LEVELS.filter(lv=>byLv[lv]).map(lv=>{
     const lc=LC[lv];
-    const cards=byLv[lv].map(w=>`<div class="vcard"><div class="vmn"><div><span class="vw">${w.word}</span> <span class="vr">${w.reading}</span></div><div class="vmm">${w.meaning}</div></div><div class="vcb"><button class="vcbtn" onclick="cpWord('${w.word}')">📋</button><a href="https://jisho.org/search/${encodeURIComponent(w.word)}" target="_blank" rel="noopener" style="text-decoration:none"><button class="vcbtn">🔗</button></a><button class="vcbtn vdel" onclick="delVoc('${w.word}')">🗑</button></div></div>`).join('');
-    return`<div class="vlg"><div class="vll"><span class="lb" style="background:${lc}20;border-color:${lc}60;color:${lc}">${lv}</span>${byLv[lv].length}語</div>${cards}</div>`;
+    const cards=byLv[lv].map(w=>`
+      <div class="vcard">
+        <div class="vc-top">
+          <div style="flex:1;min-width:0">
+            <div><span class="vc-word">${w.word}</span> <span class="vc-read">${w.reading}</span></div>
+            <div class="vc-meaning">${w.meaning}</div>
+          </div>
+          <span class="vc-lv" style="background:${lc}18;border-color:${lc}50;color:${lc}">${w.level}</span>
+        </div>
+        <div class="vc-actions">
+          <button class="vca" onclick="cpWord('${w.word}')">📋 コピー</button>
+          <a class="vca" href="https://jisho.org/search/${encodeURIComponent(w.word)}" target="_blank" rel="noopener">🔗 Jisho</a>
+          <button class="vca vca-del" onclick="delVoc('${w.word}')">🗑 削除</button>
+        </div>
+      </div>`).join('');
+    return`<div class="vlg"><div class="vll"><span class="lb" style="background:${lc}20;border-color:${lc}60;color:${lc}">${lv}</span> ${byLv[lv].length}語</div>${cards}</div>`;
   }).join('');
+}
+
+// ════════════════════════════════════════════
+// MODAL 管理 - 排他制御 + スクロールロック
+// ════════════════════════════════════════════
+const MODALS = ['cmod','wmod','voc'];
+function openModal(id){
+  // 他のモーダルが残っていても body スクロールをロック
+  document.body.style.overflow='hidden';
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  // 全モーダルが閉じたらスクロール解除
+  const anyOpen = MODALS.some(m=>document.getElementById(m)?.classList.contains('open'));
+  if(!anyOpen) document.body.style.overflow='';
+}
+function closeAllModals(){
+  MODALS.forEach(m=>document.getElementById(m)?.classList.remove('open'));
+  document.body.style.overflow='';
 }
 
 // ════════════════════════════════════════════
@@ -1100,8 +1401,9 @@ document.addEventListener('keydown',e=>{
 // INIT
 // ════════════════════════════════════════════
 // レベルcharPosを最後の解放レベルに初期化
-lvlCharPos=LEVELS.findLastIndex((_,i)=>lvlUnlocked(i));
-if(lvlCharPos<0)lvlCharPos=0;
+// findLastIndex の互換対応
+lvlCharPos=0;
+for(let _i=LEVELS.length-1;_i>=0;_i--){if(lvlUnlocked(_i)){lvlCharPos=_i;break;}}
 initLevelScreen();
 </script>
 </body>
